@@ -59,8 +59,8 @@ class ConfigChecker {
   template<typename T>
   void checkGT(const T& param, const T& value, const std::string& name) {
     if (param <= value) {
-      LOG(WARNING) << name_ << ": param '" << name << "' is expected > "
-                   << value << " (is: " << param << ").";
+      LOG(WARNING) << name_ << ": param '" << name << "' is expected > '"
+                   << value << "' (is: '" << param << "').";
       is_valid_ = false;
     }
   }
@@ -68,8 +68,8 @@ class ConfigChecker {
   template<typename T>
   void checkGE(const T& param, const T& value, const std::string& name) {
     if (param < value) {
-      LOG(WARNING) << name_ << ": param '" << name
-                   << "' is expected >= " << value << " (is: " << param << ").";
+      LOG(WARNING) << name_ << ": param '" << name << "' is expected >= '"
+                   << value << "' (is: '" << param << "').";
       is_valid_ = false;
     }
   }
@@ -77,8 +77,8 @@ class ConfigChecker {
   template<typename T>
   void checkLT(const T& param, const T& value, const std::string& name) {
     if (param >= value) {
-      LOG(WARNING) << name_ << ": param '" << name << "' is expected < "
-                   << value << " (is: " << param << ").";
+      LOG(WARNING) << name_ << ": param '" << name << "' is expected < '"
+                   << value << "' (is: '" << param << "').";
       is_valid_ = false;
     }
   }
@@ -86,8 +86,8 @@ class ConfigChecker {
   template<typename T>
   void checkLE(const T& param, const T& value, const std::string& name) {
     if (param > value) {
-      LOG(WARNING) << name_ << ": param '" << name
-                   << "' is expected <= " << value << " (is: " << param << ").";
+      LOG(WARNING) << name_ << ": param '" << name << "' is expected <= '"
+                   << value << "' (is: '" << param << "').";
       is_valid_ = false;
     }
   }
@@ -95,8 +95,8 @@ class ConfigChecker {
   template<typename T>
   void checkEq(const T& param, const T& value, const std::string& name) {
     if (param != value) {
-      LOG(WARNING) << name_ << ": param '" << name << "' is expected to be "
-                   << value << " (is: " << param << ").";
+      LOG(WARNING) << name_ << ": param '" << name << "' is expected to be '"
+                   << value << "' (is: '" << param << "').";
       is_valid_ = false;
     }
   }

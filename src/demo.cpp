@@ -6,8 +6,8 @@
 // Define a class that uses a config.
 class MyClass {
  public:
-  // Config definition.
-  struct MyConfig : public config_utilities::Config<MyConfig> {
+  // Config definition that inherits from config_utility and templates itself.
+  struct Config : public config_utilities::Config<Config> {
     int a = 0;
     double b = 123.4;
     double b_half = -1;
@@ -21,7 +21,7 @@ class MyClass {
       checkParamCond(static_cast<int>(b) > a, "b is expected > a.");
     }
 
-    // Additional printing can be implemented for the config.
+    // Optionally printing can be implemented using the printX tools.
     void printFields() const override {
       printField(a, "a");
       printField(b, "b");
@@ -37,8 +37,8 @@ class MyClass {
       }
     }
 
-    // Optional other fields can be set in the constructor
-    MyConfig() {
+    // Optional other fields can be set in the constructor.
+    Config() {
       setName("MyClass-Config");
       setPrintWidth(40);
       setPrintIndent(20);
@@ -46,29 +46,29 @@ class MyClass {
   };
 
   // Use the config for construction.
-  explicit MyClass(const MyConfig& config) : config_(config.checkValid()) {}
+  explicit MyClass(const Config& config) : config_(config.checkValid()) {}
 
   void print() const {
     std::cout << config_.toString() << std::endl;
   }
 
  private:
-  const MyConfig config_;
+  const Config config_;
 };
 
 int main(int argc, char** argv) {
-  // Warning are printed using GLOG, make sure to run with "-alsologtostderr"
+  // Warnings are printed using GLOG, make sure to run with "-alsologtostderr".
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);
 
   // Create a valid (default) config.
-  MyClass::MyConfig valid_config;
+  MyClass::Config valid_config;
 
   MyClass my_class(valid_config);
   my_class.print();
 
   // Create an invalid config.
-  MyClass::MyConfig invalid_config;
+  MyClass::Config invalid_config;
   invalid_config.a = -1;
   invalid_config.b = -3;
   invalid_config.c = "test";
