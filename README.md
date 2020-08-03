@@ -1,5 +1,5 @@
 # config_utilities
-Tools to make working with configs for (ros) libraries more uniform, readable, and convenient.
+Tools to make working with config structs for (ROS) C++ libraries more uniform, readable, and convenient.
 
 * **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>
 * **License:** BSD-3-Clause.
@@ -33,7 +33,7 @@ Tools to make working with configs for (ros) libraries more uniform, readable, a
   ```
 ## Demo
 A verbose example of the most important features is given in `src/demo.cpp`. 
-To run it type
+To run it type:
 ```shellscript
 roscd config_utilities
 ./../../devel/lib/config_utilities/demo -alsologtostderr
