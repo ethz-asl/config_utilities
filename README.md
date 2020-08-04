@@ -20,7 +20,7 @@ Tools to make working with config structs for (ROS) C++ libraries more uniform, 
 * **Catkin Package**
 
   To use within a ROS workspace it can be conveniently installed via catkin. 
-  ```shellscript
+  ```sh
   cd ~/catkin_ws/src
   git clone https://github.com/Schmluk/config_utilities.git
   
@@ -34,7 +34,7 @@ Tools to make working with config structs for (ROS) C++ libraries more uniform, 
 ## Demo
 A verbose example of the most important features is given in `src/demo.cpp`. 
 To run it type:
-```shellscript
+```sh
 roscd config_utilities
 ./../../devel/lib/config_utilities/demo -alsologtostderr
 ```
