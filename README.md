@@ -35,8 +35,7 @@ Tools to make working with config structs for (ROS) C++ libraries more uniform, 
 A verbose example of the most important features is given in `src/demo.cpp`. 
 To run it type:
 ```sh
-roscd config_utilities
-./../../devel/lib/config_utilities/demo -alsologtostderr
+rosrun config_utilities_demos demo_config --logtostderr
 ```
 It shows how to setup a class using configs and print it to console:
 ```

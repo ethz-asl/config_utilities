@@ -10,10 +10,21 @@ catkin_package()
 # Executables #
 ###############
 
-cs_add_executable(config_demo.cpp
-        config_demo.cpp
+cs_add_executable(demo_config_checker
+        demo_config_checker.cpp
         )
-target_link_libraries(config_demo ${PROJECT_NAME})
+
+cs_add_executable(demo_config
+        demo_config.cpp
+        )
+
+#cs_add_executable(demo_ros_param
+#        demo_ros_param.cpp
+#        )
+#
+cs_add_executable(demo_inheritance
+        demo_inheritance.cpp
+        )
 
 ##########
 # Export #
