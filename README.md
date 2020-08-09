@@ -10,12 +10,20 @@ Tools to make working with config structs for (ROS) C++ libraries more uniform, 
 * [Tools](#Tools)
   * [Config](#Config)
   * [Config Checker](#Config-Checker)
+  
 
 ## Installation
 * **Header-Only**
 
   This mini-library can be used as a header only library by simply copying the `include/config.h` into your project.
   Requires a system install of google glog.
+  
+  * Dependencies:
+    ```
+    sudo apt update
+    sudo apt install libxmlrpc-c++8-dev
+    sudo apt-get install libgoogle-glog-dev
+    ```
 
 * **Catkin Package**
 

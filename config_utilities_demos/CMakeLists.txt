@@ -18,10 +18,10 @@ cs_add_executable(demo_config
         demo_config.cpp
         )
 
-#cs_add_executable(demo_ros_param
-#        demo_ros_param.cpp
-#        )
-#
+cs_add_executable(demo_ros_param
+        demo_ros_param.cpp
+        )
+
 cs_add_executable(demo_inheritance
         demo_inheritance.cpp
         )
