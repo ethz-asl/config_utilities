@@ -763,10 +763,11 @@ void Config<ConfigT>::printField(const std::string& name,
   }
   std::stringstream ss;
   auto rot = field.getEigenQuaternion().toRotationMatrix().eulerAngles(0, 1, 2);
-  ss << "x: " << field.getPosition()[0]<<", y: "
-  << field.getPosition()[1] <<", z: "
-  << field.getPosition()[2]<<", roll: "
-  << rot.x() <<", pitch: " << rot.y()<<", yaw: " << rot.z();
+  rot = rot * 180.0 / M_PI;
+  ss << "t: [" << field.getPosition()[0]<<", "
+  << field.getPosition()[1] <<", "
+  << field.getPosition()[2]<<"] RPY°: ["
+  << rot.x() <<", " << rot.y()<<", " << rot.z() << "]";
   printFieldInternal(name, ss.str());
 }
 #endif  // CONFIG_UTILITIES_TRANSFORMATION_ENABLED
@@ -1068,12 +1069,57 @@ template<typename ConfigType>
 void Config<ConfigT>::rosParam(Config<ConfigType>* param, const std::string& sub_namespace) {
 
 }
+
 #ifdef CONFIG_UTILITIES_TRANSFORMATION_ENABLED
 template<typename ConfigT>
 template<typename Scalar>
 void Config<ConfigT>::rosParam(const std::string& name,
               kindr::minimal::QuatTransformationTemplate<Scalar>* param) {
+  // Check scope and param map are valid.
+  if (!meta_data_->params) {
+    LOG(WARNING) << "'rosParam()' calls are only allowed within the "
+                    "'fromRosParam()' method, no param will be loaded.";
+    return;
+  }
+  // Check the param is set.
+  auto it = meta_data_->params->find(name);
+  if(it == meta_data_->params->end()) {
+    return;
+  }
+  const XmlRpc::XmlRpcValue& xml = it->second;
+  // NOTE: This code was taken and adapted from minkindr_conversions:
+  // https://github.com/ethz-asl/minkindr_ros/blob/master/
+  // minkindr_conversions/include/minkindr_conversions/kindr_xml.h
+  if (xml.size() != 4) {
+    LOG(WARNING) << name_ << ": param '"
+                 << name << "' is set but could not be read.";
+    return;
+  }
+  // read raw inputs
+  typename kindr::minimal::QuatTransformationTemplate<Scalar>::RotationMatrix
+      temp_rot_matrix;
+  typename kindr::minimal::QuatTransformationTemplate<Scalar>::Position
+      temp_translation;
+  for (size_t i = 0; i < 3; ++i) {
+    if (xml[i].size() != 4) {
+      LOG(WARNING) << name_ << ": param '"
+                   << name << "' is set but could not be read.";
+      return;
+    }
+    for (size_t j = 0; j < 3; ++j) {
+      temp_rot_matrix(i, j) = static_cast<double>(xml[i][j]);
+    }
+    temp_translation(i) = static_cast<double>(xml[i][3]);
+  }
 
+  // renormalize rotation to correct for rounding error when yaml was written
+  kindr::minimal::RotationQuaternionTemplate<Scalar> temp_rot_quat =
+      kindr::minimal::RotationQuaternionTemplate<
+          Scalar>::constructAndRenormalize(temp_rot_matrix);
+
+  // recombine
+  *param = kindr::minimal::QuatTransformationTemplate<Scalar>(temp_rot_quat,
+                                                              temp_translation);
 }
 #endif  // CONFIG_UTILITIES_TRANSFORMATION_ENABLED
 

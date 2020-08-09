@@ -36,6 +36,11 @@ struct Config : public config_utilities::Config<Config> {
     rosParam("vec", &vec);
     rosParam("map", &map);
     rosParam("T", &T);  // This is enabled due to minkindr include.
+
+    // Any custom data can be gathered via XmlRpc.
+    XmlRpc::XmlRpcValue xml_rpc_value;
+    rosParam("custom_data", &xml_rpc_value);
+    /* Do some magic with 'xml_rpc_value' here */
   }
 
   // Optionally implement printing.
