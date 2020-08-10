@@ -48,7 +48,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CONFIG_UTILITIES_CORE_HPP_
 
 #include <iomanip>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -400,7 +399,7 @@ public:
     return *this;
   }
 
-  [[nodiscard]] bool isValid(bool print_warnings) const {
+  [[nodiscard]] bool isValid(bool print_warnings=false) const {
     meta_data_->checker = std::make_unique<ConfigChecker>(name_);
     meta_data_->checker->setPrintWidth(meta_data_->print_width);
     checkParams();
