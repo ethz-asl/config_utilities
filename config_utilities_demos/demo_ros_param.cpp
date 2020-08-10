@@ -35,7 +35,7 @@ struct Config : public config_utilities::Config<Config> {
     rosParam("c", &c);
     rosParam("vec", &vec);
     rosParam("map", &map);
-    rosParam("T", &T);  // This is enabled due to minkindr include.
+    rosParam("T", &T); // This is enabled due to minkindr include.
 
     // Any custom data can be gathered via XmlRpc.
     XmlRpc::XmlRpcValue xml_rpc_value;
@@ -50,7 +50,7 @@ struct Config : public config_utilities::Config<Config> {
     printField("c", c);
     printField("vec", vec);
     printField("map", map);
-    printField("T", T);  // This is enabled due to minkindr include.
+    printField("T", T); // This is enabled due to minkindr include.
   }
 
   // Optional other fields can be set in the constructor.
@@ -61,8 +61,7 @@ struct Config : public config_utilities::Config<Config> {
   }
 };
 
-
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   // Warnings are printed using GLOG, make sure to run with "-alsologtostderr".
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);
@@ -70,7 +69,7 @@ int main(int argc, char** argv) {
   // Setup ros and add some params to the parameter server
   ros::init(argc, argv, "demo_ros_param");
   ros::NodeHandle nh_private("~");
-  std::vector<double> vec {1.0, 2.0, 3.0};
+  std::vector<double> vec{1.0, 2.0, 3.0};
   std::map<std::string, int> map;
   map["m1"] = 1;
   map["m2"] = 2;

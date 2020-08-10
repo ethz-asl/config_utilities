@@ -31,7 +31,7 @@ struct OtherConfig : public config_utilities::Config<OtherConfig> {
 
 // Define a base class that uses a base config.
 class MyBase {
- public:
+public:
   struct Config : public config_utilities::Config<Config> {
     bool c = true;
     double d = 0.0;
@@ -56,16 +56,16 @@ class MyBase {
     }
   };
 
-  explicit MyBase(const Config& config) : config_(config.checkValid()) {}
+  explicit MyBase(const Config &config) : config_(config.checkValid()) {}
   virtual ~MyBase() = default;
 
- private:
+private:
   const Config config_;
 };
 
 // Define a derived class that uses its own config.
 class MyDerived : public MyBase {
- public:
+public:
   struct Config : public config_utilities::Config<Config> {
     std::string e = "e";
     int f = 0;
@@ -96,18 +96,16 @@ class MyDerived : public MyBase {
   };
 
   // We can use the member config to initialize the base class.
-  explicit MyDerived(const Config& config)
+  explicit MyDerived(const Config &config)
       : MyBase(config.base_config), config_(config.checkValid()) {}
 
-  void print() const {
-    std::cout << config_.toString() << std::endl;
-  }
+  void print() const { std::cout << config_.toString() << std::endl; }
 
- private:
+private:
   const Config config_;
 };
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   // Warnings are printed using GLOG, make sure to run with "-alsologtostderr".
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);

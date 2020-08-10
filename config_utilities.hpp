@@ -47,16 +47,16 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef CONFIG_UTILITIES_CORE_HPP_
 #define CONFIG_UTILITIES_CORE_HPP_
 
-#include <string>
-#include <utility>
-#include <memory>
-#include <typeinfo>
-#include <type_traits>
-#include <sstream>
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <typeinfo>
 #include <unordered_map>
+#include <utility>
 
 #include <glog/logging.h>
 #include <xmlrpcpp/XmlRpcValue.h>
@@ -68,48 +68,48 @@ namespace config_utilities {
  */
 namespace internal {
 struct Settings {
-  Settings(const Settings& other) = delete;
-  Settings&operator=(const Settings& other) = delete;
+  Settings(const Settings &other) = delete;
+  Settings &operator=(const Settings &other) = delete;
 
   // Settings
   unsigned int default_print_width = 80;
   unsigned int default_print_indent = 30;
   unsigned int default_subconfig_indent = 3;
 
-  static Settings& instance() {
+  static Settings &instance() {
     static Settings settings;
     return settings;
   }
- private:
+
+private:
   Settings() = default;
 };
 } // namespace internal
 
 // Access.
-internal::Settings& Settings() { return internal::Settings::instance(); }
+internal::Settings &Settings() { return internal::Settings::instance(); }
 
 /**
  * ==================== Internal Utilities ====================
  */
 namespace internal {
 // Printing utility
-std::string printCenter(const std::string& text, int width, char symbol) {
+std::string printCenter(const std::string &text, int width, char symbol) {
   int first = std::max((width - static_cast<int>(text.length()) - 2) / 2, 0);
   std::string result = std::string(first, symbol) + " " + text + " ";
-  result += std::string(std::max(width -
-      static_cast<int>(result.length()), 0), symbol);
+  result += std::string(std::max(width - static_cast<int>(result.length()), 0),
+                        symbol);
   return result;
 }
 
 // Type verification
-struct ConfigInternalVerificator{};
-template<typename T>
-bool isConfig(const T* candidate) {
-  try { throw candidate; }
-  catch (const ConfigInternalVerificator*) {
+struct ConfigInternalVerificator {};
+template <typename T> bool isConfig(const T *candidate) {
+  try {
+    throw candidate;
+  } catch (const ConfigInternalVerificator *) {
     return true;
-  }
-  catch (...) {
+  } catch (...) {
   }
   return false;
 }
@@ -118,95 +118,126 @@ bool isConfig(const T* candidate) {
 using ParamMap = std::unordered_map<std::string, XmlRpc::XmlRpcValue>;
 
 // XML casts
-template<typename T>
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, T* param = nullptr) {
+template <typename T>
+bool xmlCast(const XmlRpc::XmlRpcValue &xml, T *param = nullptr) {
   return false;
 }
 
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, bool* param = nullptr) {
+bool xmlCast(const XmlRpc::XmlRpcValue &xml, bool *param = nullptr) {
   switch (xml.getType()) {
-    case XmlRpc::XmlRpcValue::Type::TypeBoolean : {
-      if (param) { *param = static_cast<bool>(xml); }
-      return true;
+  case XmlRpc::XmlRpcValue::Type::TypeBoolean: {
+    if (param) {
+      *param = static_cast<bool>(xml);
     }
-    case XmlRpc::XmlRpcValue::Type::TypeInt : {
-      if (param) { *param = static_cast<bool>(static_cast<int>(xml)); }
-      return true;
+    return true;
+  }
+  case XmlRpc::XmlRpcValue::Type::TypeInt: {
+    if (param) {
+      *param = static_cast<bool>(static_cast<int>(xml));
     }
-    case XmlRpc::XmlRpcValue::Type::TypeDouble : {
-      if (param) { *param = static_cast<bool>(static_cast<double>(xml)); }
-      return true;
+    return true;
+  }
+  case XmlRpc::XmlRpcValue::Type::TypeDouble: {
+    if (param) {
+      *param = static_cast<bool>(static_cast<double>(xml));
     }
-    default : return false;
+    return true;
+  }
+  default:
+    return false;
   }
 }
 
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, int* param = nullptr) {
+bool xmlCast(const XmlRpc::XmlRpcValue &xml, int *param = nullptr) {
   switch (xml.getType()) {
-    case XmlRpc::XmlRpcValue::Type::TypeBoolean : {
-      if (param) { *param = static_cast<int>(static_cast<bool>(xml)); }
-      return true;
+  case XmlRpc::XmlRpcValue::Type::TypeBoolean: {
+    if (param) {
+      *param = static_cast<int>(static_cast<bool>(xml));
     }
-    case XmlRpc::XmlRpcValue::Type::TypeInt : {
-      if (param) { *param = static_cast<int>(xml); }
-      return true;
+    return true;
+  }
+  case XmlRpc::XmlRpcValue::Type::TypeInt: {
+    if (param) {
+      *param = static_cast<int>(xml);
     }
-    case XmlRpc::XmlRpcValue::Type::TypeDouble : {
-      if (param) { *param = static_cast<int>(static_cast<double>(xml)); }
-      return true;
+    return true;
+  }
+  case XmlRpc::XmlRpcValue::Type::TypeDouble: {
+    if (param) {
+      *param = static_cast<int>(static_cast<double>(xml));
     }
-    default: return false;
+    return true;
+  }
+  default:
+    return false;
   }
 }
 
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, float* param = nullptr) {
+bool xmlCast(const XmlRpc::XmlRpcValue &xml, float *param = nullptr) {
   switch (xml.getType()) {
-    case XmlRpc::XmlRpcValue::Type::TypeBoolean : {
-      if (param) { *param = static_cast<float>(static_cast<bool>(xml)); }
-      return true;
+  case XmlRpc::XmlRpcValue::Type::TypeBoolean: {
+    if (param) {
+      *param = static_cast<float>(static_cast<bool>(xml));
     }
-    case XmlRpc::XmlRpcValue::Type::TypeInt : {
-      if (param) { *param = static_cast<float>(static_cast<int>(xml)); }
-      return true;
+    return true;
+  }
+  case XmlRpc::XmlRpcValue::Type::TypeInt: {
+    if (param) {
+      *param = static_cast<float>(static_cast<int>(xml));
     }
-    case XmlRpc::XmlRpcValue::Type::TypeDouble : {
-      if (param) { *param = static_cast<float>(static_cast<double>(xml)); }
-      return true;
+    return true;
+  }
+  case XmlRpc::XmlRpcValue::Type::TypeDouble: {
+    if (param) {
+      *param = static_cast<float>(static_cast<double>(xml));
     }
-    default: return false;
+    return true;
+  }
+  default:
+    return false;
   }
 }
 
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, double* param = nullptr) {
+bool xmlCast(const XmlRpc::XmlRpcValue &xml, double *param = nullptr) {
   switch (xml.getType()) {
-    case XmlRpc::XmlRpcValue::Type::TypeBoolean : {
-      if (param) { *param = static_cast<double>(static_cast<bool>(xml)); }
-      return true;
+  case XmlRpc::XmlRpcValue::Type::TypeBoolean: {
+    if (param) {
+      *param = static_cast<double>(static_cast<bool>(xml));
     }
-    case XmlRpc::XmlRpcValue::Type::TypeInt : {
-      if (param) { *param = static_cast<double>(static_cast<int>(xml)); }
-      return true;
+    return true;
+  }
+  case XmlRpc::XmlRpcValue::Type::TypeInt: {
+    if (param) {
+      *param = static_cast<double>(static_cast<int>(xml));
     }
-    case XmlRpc::XmlRpcValue::Type::TypeDouble : {
-      if (param) { *param = static_cast<double>(xml); }
-      return true;
+    return true;
+  }
+  case XmlRpc::XmlRpcValue::Type::TypeDouble: {
+    if (param) {
+      *param = static_cast<double>(xml);
     }
-    default: return false;
+    return true;
+  }
+  default:
+    return false;
   }
 }
 
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, std::string* param = nullptr) {
+bool xmlCast(const XmlRpc::XmlRpcValue &xml, std::string *param = nullptr) {
   switch (xml.getType()) {
-    case XmlRpc::XmlRpcValue::Type::TypeString : {
-      if (param) { *param = static_cast<std::string>(xml); }
-      return true;
+  case XmlRpc::XmlRpcValue::Type::TypeString: {
+    if (param) {
+      *param = static_cast<std::string>(xml);
     }
-    default: return false;
+    return true;
+  }
+  default:
+    return false;
   }
 }
 
-template<typename T>
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, std::vector<T>* param = nullptr) {
+template <typename T>
+bool xmlCast(const XmlRpc::XmlRpcValue &xml, std::vector<T> *param = nullptr) {
   if (xml.getType() != XmlRpc::XmlRpcValue::TypeArray) {
     return false;
   }
@@ -222,7 +253,7 @@ bool xmlCast(const XmlRpc::XmlRpcValue& xml, std::vector<T>* param = nullptr) {
   }
   return true;
 }
-}  // namespace internal
+} // namespace internal
 
 /**
  * ==================== ConfigChecker ====================
@@ -230,12 +261,12 @@ bool xmlCast(const XmlRpc::XmlRpcValue& xml, std::vector<T>* param = nullptr) {
 
 // Utility tool to make checking configs easier and more readable.
 class ConfigChecker {
- public:
-  explicit ConfigChecker(std::string module_name) :
-      name_(std::move(module_name)),
-      print_width_(Settings().default_print_width) {}
+public:
+  explicit ConfigChecker(std::string module_name)
+      : name_(std::move(module_name)),
+        print_width_(Settings().default_print_width){}
 
-  [[nodiscard]] bool isValid(bool print_warnings=false) const {
+            [[nodiscard]] bool isValid(bool print_warnings = false) const {
     if (warnings_.empty()) {
       return true;
     }
@@ -255,8 +286,8 @@ class ConfigChecker {
 
   void reset() { warnings_.clear(); }
 
-  template<typename T>
-  void checkGT(const T& param,                              const T& value,                              const std::string& name) {
+  template <typename T>
+  void checkGT(const T &param, const T &value, const std::string &name) {
     if (param <= value) {
       std::stringstream ss;
       ss << "Param '" << name << "' is expected > '" << value << "' (is: '"
@@ -265,8 +296,8 @@ class ConfigChecker {
     }
   }
 
-  template<typename T>
-  void checkGE(const T& param,                              const T& value,                              const std::string& name) {
+  template <typename T>
+  void checkGE(const T &param, const T &value, const std::string &name) {
     if (param < value) {
       std::stringstream ss;
       ss << "Param '" << name << "' is expected >= '" << value << "' (is: '"
@@ -275,8 +306,8 @@ class ConfigChecker {
     }
   }
 
-  template<typename T>
-  void checkLT(const T& param,                              const T& value,                              const std::string& name) {
+  template <typename T>
+  void checkLT(const T &param, const T &value, const std::string &name) {
     if (param >= value) {
       std::stringstream ss;
       ss << "Param '" << name << "' is expected < '" << value << "' (is: '"
@@ -285,8 +316,8 @@ class ConfigChecker {
     }
   }
 
-  template<typename T>
-  void checkLE(const T& param,                              const T& value,                              const std::string& name) {
+  template <typename T>
+  void checkLE(const T &param, const T &value, const std::string &name) {
     if (param > value) {
       std::stringstream ss;
       ss << "Param '" << name << "' is expected <= '" << value << "' (is: '"
@@ -295,8 +326,8 @@ class ConfigChecker {
     }
   }
 
-  template<typename T>
-  void checkEq(const T& param,                              const T& value,                              const std::string& name) {
+  template <typename T>
+  void checkEq(const T &param, const T &value, const std::string &name) {
     if (param != value) {
       std::stringstream ss;
       ss << "Param '" << name << "' is expected to be '" << value << "' (is: '"
@@ -305,8 +336,8 @@ class ConfigChecker {
     }
   }
 
-  template<typename T>
-  void checkNE(const T& param,                              const T& value,                              const std::string& name) {
+  template <typename T>
+  void checkNE(const T &param, const T &value, const std::string &name) {
     if (param == value) {
       std::stringstream ss;
       ss << "Param '" << name << "' is expected to be different from '" << value
@@ -315,7 +346,7 @@ class ConfigChecker {
     }
   }
 
-  void checkCond(bool condition, const std::string& warning) {
+  void checkCond(bool condition, const std::string &warning) {
     if (!condition) {
       warnings_.emplace_back(warning);
     }
@@ -323,14 +354,15 @@ class ConfigChecker {
 
   void setPrintWidth(int width) { print_width_ = width; }
 
- private:
-  void print(const std::string& severity) const {
+private:
+  void print(const std::string &severity) const {
     std::string sev = "";
     if (!severity.empty()) {
       sev.append(severity + ": ");
     }
     int length = print_width_ - sev.length();
-    std::string warning = "\n" + internal::printCenter(name_, print_width_, '=');
+    std::string warning =
+        "\n" + internal::printCenter(name_, print_width_, '=');
     for (std::string w : warnings_) {
       std::string line = sev;
       while (w.length() > length) {
@@ -345,7 +377,7 @@ class ConfigChecker {
     LOG(ERROR) << warning;
   }
 
- private:
+private:
   const std::string name_;
   std::vector<std::string> warnings_;
   int print_width_;
@@ -357,13 +389,12 @@ class ConfigChecker {
 namespace internal {
 // Base class for internal use.
 struct ConfigInternal : public ConfigInternalVerificator {
- public:
-  explicit ConfigInternal(std::string name) :
-  name_(std::move(name)),
-                              meta_data_(new MetaData()) {}
-  ConfigInternal(const ConfigInternal& other) : name_(other.name_),
-                                                 meta_data_(new MetaData(*(other.meta_data_))) {}
-  ConfigInternal& operator=(const ConfigInternal& other) {
+public:
+  explicit ConfigInternal(std::string name)
+      : name_(std::move(name)), meta_data_(new MetaData()) {}
+  ConfigInternal(const ConfigInternal &other)
+      : name_(other.name_), meta_data_(new MetaData(*(other.meta_data_))) {}
+  ConfigInternal &operator=(const ConfigInternal &other) {
     name_ = other.name_;
     meta_data_ = std::make_unique<MetaData>(*other.meta_data_);
     return *this;
@@ -379,11 +410,11 @@ struct ConfigInternal : public ConfigInternalVerificator {
   }
 
   [[nodiscard]] std::string toString() const {
-    meta_data_->messages= std::make_unique<std::vector<std::string>>();
+    meta_data_->messages = std::make_unique<std::vector<std::string>>();
     printFields();
-    std::string
-        result = internal::printCenter(name_, meta_data_->print_width, '=');
-    for (const std::string& msg : *(meta_data_->messages)) {
+    std::string result =
+        internal::printCenter(name_, meta_data_->print_width, '=');
+    for (const std::string &msg : *(meta_data_->messages)) {
       result.append("\n" + msg);
     }
     result.append("\n" + std::string(meta_data_->print_width, '='));
@@ -407,14 +438,15 @@ struct ConfigInternal : public ConfigInternalVerificator {
   }
 
   // General Tools.
-  void setName(const std::string& name) { name_ = name; }
+  void setName(const std::string &name) { name_ = name; }
   void setPrintWidth(int width) { meta_data_->print_width = width; }
   void setPrintIndent(int indent) { meta_data_->print_indent = indent; }
 
- protected:
+protected:
   // Checking Tools.
-  template<typename T>
-  void checkParamGT(const T& param,const T& value, const std::string& name) const {
+  template <typename T>
+  void checkParamGT(const T &param, const T &value,
+                    const std::string &name) const {
     if (!meta_data_->checker) {
       LOG(WARNING) << "'checkParamGT()' calls are only allowed within the "
                       "'checkParams()' method, no checks will be performed.";
@@ -423,10 +455,9 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->checker->checkGT(param, value, name);
   }
 
-  template<typename T>
-  void checkParamGE(const T& param,
-                                     const T& value,
-                                     const std::string& name) const {
+  template <typename T>
+  void checkParamGE(const T &param, const T &value,
+                    const std::string &name) const {
     if (!meta_data_->checker) {
       LOG(WARNING) << "'checkParamGE()' calls are only allowed within the "
                       "'checkParams()' method, no checks will be performed.";
@@ -435,10 +466,9 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->checker->checkGE(param, value, name);
   }
 
-  template<typename T>
-  void checkParamLT(const T& param,
-                                     const T& value,
-                                     const std::string& name) const {
+  template <typename T>
+  void checkParamLT(const T &param, const T &value,
+                    const std::string &name) const {
     if (!meta_data_->checker) {
       LOG(WARNING) << "'checkParamLT()' calls are only allowed within the "
                       "'checkParams()' method, no checks will be performed.";
@@ -447,10 +477,9 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->checker->checkLT(param, value, name);
   }
 
-  template<typename T>
-  void checkParamLE(const T& param,
-                                     const T& value,
-                                     const std::string& name) const {
+  template <typename T>
+  void checkParamLE(const T &param, const T &value,
+                    const std::string &name) const {
     if (!meta_data_->checker) {
       LOG(WARNING) << "'checkParamLE()' calls are only allowed within the "
                       "'checkParams()' method, no checks will be performed.";
@@ -459,10 +488,9 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->checker->checkLE(param, value, name);
   }
 
-  template<typename T>
-  void checkParamEq(const T& param,
-                                     const T& value,
-                                     const std::string& name) const {
+  template <typename T>
+  void checkParamEq(const T &param, const T &value,
+                    const std::string &name) const {
     if (!meta_data_->checker) {
       LOG(WARNING) << "'checkParamEq()' calls are only allowed within the "
                       "'checkParams()' method, no checks will be performed.";
@@ -471,10 +499,9 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->checker->checkEq(param, value, name);
   }
 
-  template<typename T>
-  void checkParamNE(const T& param,
-                                     const T& value,
-                                     const std::string& name) const {
+  template <typename T>
+  void checkParamNE(const T &param, const T &value,
+                    const std::string &name) const {
     if (!meta_data_->checker) {
       LOG(WARNING) << "'checkParamNE()' calls are only allowed within the "
                       "'checkParams()' method, no checks will be performed.";
@@ -483,8 +510,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->checker->checkNE(param, value, name);
   }
 
-  void checkParamCond(bool condition,
-                                       const std::string& warning) const {
+  void checkParamCond(bool condition, const std::string &warning) const {
     if (!meta_data_->checker) {
       LOG(WARNING) << "'checkParamCond()' calls are only allowed within the "
                       "'checkParams()' method, no checks will be performed.";
@@ -494,16 +520,15 @@ struct ConfigInternal : public ConfigInternalVerificator {
   }
 
   // Printing Tools.
-  template<typename T>
-  void printField(const std::string& name,
-                                   const T& field) const {
+  template <typename T>
+  void printField(const std::string &name, const T &field) const {
     if (!meta_data_->messages) {
       LOG(WARNING) << "'printField()' calls are only allowed within the "
                       "'printFields()' method.";
       return;
     }
     if (isConfig(&field)) {
-      printConfigInternal(name, (const internal::ConfigInternal*) &field);
+      printConfigInternal(name, (const internal::ConfigInternal *)&field);
     } else {
       std::stringstream ss;
       ss << field;
@@ -511,8 +536,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
   }
 
-  void printField(const std::string& name,
-                                   const bool& field) const {
+  void printField(const std::string &name, const bool &field) const {
     std::string val = "False";
     if (field) {
       val = "True";
@@ -520,9 +544,8 @@ struct ConfigInternal : public ConfigInternalVerificator {
     printFieldInternal(name, val);
   }
 
-  template<typename T>
-  void printField(const std::string& name,
-                                   const std::vector<T>& field) const {
+  template <typename T>
+  void printField(const std::string &name, const std::vector<T> &field) const {
     if (!meta_data_->messages) {
       LOG(WARNING) << "'printField()' calls are only allowed within the "
                       "'printFields()' method.";
@@ -531,18 +554,18 @@ struct ConfigInternal : public ConfigInternalVerificator {
     std::stringstream ss;
     ss << "[";
     size_t offset = 0;
-    for (const T& value : field) {
+    for (const T &value : field) {
       ss << value << ", ";
       offset = 2;
     }
     std::string s = ss.str();
-    s = s.substr(0, s.length()-offset).append("]");
+    s = s.substr(0, s.length() - offset).append("]");
     printFieldInternal(name, s);
   }
 
-  template<typename T>
-  void printField(const std::string& name,
-                                   const std::map<std::string, T>& field) const {
+  template <typename T>
+  void printField(const std::string &name,
+                  const std::map<std::string, T> &field) const {
     if (!meta_data_->messages) {
       LOG(WARNING) << "'printField()' calls are only allowed within the "
                       "'printFields()' method.";
@@ -556,11 +579,11 @@ struct ConfigInternal : public ConfigInternalVerificator {
       offset = 2;
     }
     std::string s = ss.str();
-    s = s.substr(0, s.length()-offset).append("}");
+    s = s.substr(0, s.length() - offset).append("}");
     printFieldInternal(name, s);
   }
 
-  void printText(const std::string& text) const {
+  void printText(const std::string &text) const {
     if (!meta_data_->messages) {
       LOG(WARNING) << "'printText()' calls are only allowed within the "
                       "'printFields()' method.";
@@ -569,21 +592,22 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->messages->emplace_back(text);
   }
 
- private:
-  void printFieldInternal(const std::string& name,
-                                           const std::string& field) const {
+private:
+  void printFieldInternal(const std::string &name,
+                          const std::string &field) const {
     std::string f = field;
 
     // The header is the field name.
     std::string header = std::string(meta_data_->indent, ' ') + name + ": ";
     while (header.length() > meta_data_->print_width) {
       // Linebreaks for too long lines.
-      meta_data_->messages->emplace_back(header.substr(0,
-                                                       meta_data_->print_width));
+      meta_data_->messages->emplace_back(
+          header.substr(0, meta_data_->print_width));
       header = header.substr(meta_data_->print_width);
     }
     if (header.length() < meta_data_->print_indent) {
-      header.append(std::string(meta_data_->print_indent - header.length(), ' '));
+      header.append(
+          std::string(meta_data_->print_indent - header.length(), ' '));
     } else if (meta_data_->print_width - header.length() < f.length()) {
       meta_data_->messages->emplace_back(header);
       header = std::string(meta_data_->print_indent, ' ');
@@ -599,31 +623,27 @@ struct ConfigInternal : public ConfigInternalVerificator {
       length = meta_data_->print_width - meta_data_->print_indent;
       while (f.length() > length) {
         meta_data_->messages->emplace_back(
-            std::string(meta_data_->print_indent, ' ')
-                + f.substr(0, length));
+            std::string(meta_data_->print_indent, ' ') + f.substr(0, length));
         f = f.substr(length);
       }
       meta_data_->messages->emplace_back(
-          std::string(meta_data_->print_indent, ' ')
-              + f.substr(0, length));
+          std::string(meta_data_->print_indent, ' ') + f.substr(0, length));
     } else {
       meta_data_->messages->emplace_back(header.append(f));
     }
   }
 
-  void printConfigInternal(const std::string& name,
-                                            const internal::ConfigInternal* field) const {
-    meta_data_->messages->emplace_back(
-        std::string(meta_data_->indent, ' ') + name + ":");
+  void printConfigInternal(const std::string &name,
+                           const internal::ConfigInternal *field) const {
+    meta_data_->messages->emplace_back(std::string(meta_data_->indent, ' ') +
+                                       name + ":");
     meta_data_->messages->emplace_back(field->toStringInternal(
         meta_data_->indent + Settings::instance().default_subconfig_indent,
-        meta_data_->print_width,
-        meta_data_->print_indent));
+        meta_data_->print_width, meta_data_->print_indent));
   }
 
-  [[nodiscard]] std::string toStringInternal(int indent,
-                                                int print_width,
-                                                int print_indent) const {
+  [[nodiscard]] std::string toStringInternal(int indent, int print_width,
+                                             int print_indent) const {
     int print_width_prev = meta_data_->print_width;
     int print_indent_prev = meta_data_->print_indent;
     int indent_prev = meta_data_->indent;
@@ -634,7 +654,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->messages = std::make_unique<std::vector<std::string>>();
     printFields();
     std::string result;
-    for (const std::string& msg : *(meta_data_->messages)) {
+    for (const std::string &msg : *(meta_data_->messages)) {
       result.append("\n" + msg);
     }
     result = result.substr(1);
@@ -645,14 +665,14 @@ struct ConfigInternal : public ConfigInternalVerificator {
     return result;
   };
 
-  void setupFromParamMap(const internal::ParamMap& params) {
+  void setupFromParamMap(const internal::ParamMap &params) {
     meta_data_->params = &params;
     fromRosParam();
     meta_data_->params = nullptr;
   }
 
-  template<typename T>
-  void rosParamInternal(const std::string& name, T* param) {
+  template <typename T>
+  void rosParamInternal(const std::string &name, T *param) {
     CHECK_NOTNULL(param);
     // Check scope and param map are valid.
     if (!meta_data_->params) {
@@ -662,19 +682,19 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
     // Check the param is set.
     auto it = meta_data_->params->find(name);
-    if(it == meta_data_->params->end()) {
+    if (it == meta_data_->params->end()) {
       return;
     }
     // Set the param.
-    if(!internal::xmlCast(it->second, param)){
-      LOG(WARNING) << name_ << ": param '"
-                   << name << "' is set but could not be read.";
+    if (!internal::xmlCast(it->second, param)) {
+      LOG(WARNING) << name_ << ": param '" << name
+                   << "' is set but could not be read.";
     }
   }
 
-  template<typename T>
-  void rosParamMapInternal(const std::string& name,
-                                            std::map<std::string,T>* param) {
+  template <typename T>
+  void rosParamMapInternal(const std::string &name,
+                           std::map<std::string, T> *param) {
     CHECK_NOTNULL(param);
     // Check scope and param map are valid.
     if (!meta_data_->params) {
@@ -684,16 +704,16 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
     // Check the param is set.
     std::map<std::string, T> values;
-    for (const auto& v : *(meta_data_->params)) {
+    for (const auto &v : *(meta_data_->params)) {
       if (v.first.find(name + "/") != 0) {
         continue;
       }
-      std::string key = v.first.substr(name.length()+1);
+      std::string key = v.first.substr(name.length() + 1);
       if (key.find('/') == std::string::npos) {
         T value;
         if (!internal::xmlCast(v.second, &value)) {
-          LOG(WARNING) << name_ << ": param '"
-                       << name << "' is set but could not be read.";
+          LOG(WARNING) << name_ << ": param '" << name
+                       << "' is set but could not be read.";
           return;
         }
         values[key] = value;
@@ -702,79 +722,70 @@ struct ConfigInternal : public ConfigInternalVerificator {
     *param = values;
   }
 
- protected:
+protected:
   // These are explicitly overloaded for agreement with ROS-params.
-  void rosParam(const std::string& name, int* param) {
+  void rosParam(const std::string &name, int *param) {
     this->rosParamInternal(name, param);
   }
 
-  void rosParam(const std::string& name, float* param) {
+  void rosParam(const std::string &name, float *param) {
     this->rosParamInternal(name, param);
   }
 
-  void rosParam(const std::string& name, double* param) {
+  void rosParam(const std::string &name, double *param) {
     this->rosParamInternal(name, param);
   }
 
-  void rosParam(const std::string& name, bool* param) {
+  void rosParam(const std::string &name, bool *param) {
     this->rosParamInternal(name, param);
   }
 
-  void rosParam(const std::string& name, std::string* param) {
+  void rosParam(const std::string &name, std::string *param) {
     this->rosParamInternal(name, param);
   }
 
-  void rosParam(const std::string& name, std::vector<int>* param) {
+  void rosParam(const std::string &name, std::vector<int> *param) {
     this->rosParamInternal(name, param);
   }
 
-  void rosParam(const std::string& name,
-                                 std::vector<double>* param) {
+  void rosParam(const std::string &name, std::vector<double> *param) {
     this->rosParamInternal(name, param);
   }
 
-  void rosParam(const std::string& name,
-                                 std::vector<float>* param) {
+  void rosParam(const std::string &name, std::vector<float> *param) {
     this->rosParamInternal(name, param);
   }
 
-  void rosParam(const std::string& name,
-                                 std::vector<bool>* param) {
+  void rosParam(const std::string &name, std::vector<bool> *param) {
     this->rosParamInternal(name, param);
   }
 
-  void rosParam(const std::string& name,
-                                 std::vector<std::string>* param) {
+  void rosParam(const std::string &name, std::vector<std::string> *param) {
     this->rosParamInternal(name, param);
   }
 
-  void rosParam(const std::string& name,
-                                 std::map<std::string, int>* param) {
+  void rosParam(const std::string &name, std::map<std::string, int> *param) {
     this->rosParamMapInternal(name, param);
   }
 
-  void rosParam(const std::string& name,
-                                 std::map<std::string, double>* param) {
+  void rosParam(const std::string &name, std::map<std::string, double> *param) {
     this->rosParamMapInternal(name, param);
   }
 
-  void rosParam(const std::string& name,
-                                 std::map<std::string, float>* param) {
+  void rosParam(const std::string &name, std::map<std::string, float> *param) {
     this->rosParamMapInternal(name, param);
   }
 
-  void rosParam(const std::string& name,
-                                 std::map<std::string, bool>* param) {
+  void rosParam(const std::string &name, std::map<std::string, bool> *param) {
     this->rosParamMapInternal(name, param);
   }
 
-  void rosParam(const std::string& name,
-                                 std::map<std::string, std::string>* param) {
+  void rosParam(const std::string &name,
+                std::map<std::string, std::string> *param) {
     this->rosParamMapInternal(name, param);
   }
 
-  void rosParam(const std::string& name,
-                                 XmlRpc::XmlRpcValue* param) {
+  void rosParam(const std::string &name, XmlRpc::XmlRpcValue *param) {
     CHECK_NOTNULL(param);
     // Check scope and param map are valid.
     if (!meta_data_->params) {
@@ -784,14 +795,13 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
     // Check the param is set.
     auto it = meta_data_->params->find(name);
-    if(it == meta_data_->params->end()) {
+    if (it == meta_data_->params->end()) {
       return;
     }
     *param = it->second;
   }
 
-  void rosParam(ConfigInternal* config,
-                                 const std::string& sub_namespace="") {
+  void rosParam(ConfigInternal *config, const std::string &sub_namespace = "") {
     CHECK_NOTNULL(config);
     // Check scope and param map are valid.
     if (!meta_data_->params) {
@@ -802,9 +812,9 @@ struct ConfigInternal : public ConfigInternalVerificator {
     // Get all params of the sub_namespace.
     internal::ParamMap params;
     if (sub_namespace.empty()) {
-      params=*(meta_data_->params);
+      params = *(meta_data_->params);
     } else {
-      for (const auto& p : *(meta_data_->params)) {
+      for (const auto &p : *(meta_data_->params)) {
         if (p.first.find(sub_namespace + "/") != 0) {
           continue;
         }
@@ -816,9 +826,9 @@ struct ConfigInternal : public ConfigInternalVerificator {
   }
 
 #ifdef CONFIG_UTILITIES_TRANSFORMATION_ENABLED
-  template<typename Scalar>
-  void rosParam(const std::string& name,
-                                 kindr::minimal::QuatTransformationTemplate<Scalar>* param) {
+  template <typename Scalar>
+  void rosParam(const std::string &name,
+                kindr::minimal::QuatTransformationTemplate<Scalar> *param) {
     CHECK_NOTNULL(param);
     // Check scope and param map are valid.
     if (!meta_data_->params) {
@@ -828,16 +838,16 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
     // Check the param is set.
     auto it = meta_data_->params->find(name);
-    if(it == meta_data_->params->end()) {
+    if (it == meta_data_->params->end()) {
       return;
     }
-    const XmlRpc::XmlRpcValue& xml = it->second;
+    const XmlRpc::XmlRpcValue &xml = it->second;
     // NOTE: This code was taken and adapted from minkindr_conversions:
     // https://github.com/ethz-asl/minkindr_ros/blob/master/
     // minkindr_conversions/include/minkindr_conversions/kindr_xml.h
     if (xml.size() != 4) {
-      LOG(WARNING) << name_ << ": param '"
-                   << name << "' is set but could not be read.";
+      LOG(WARNING) << name_ << ": param '" << name
+                   << "' is set but could not be read.";
       return;
     }
     // read raw inputs
@@ -847,8 +857,8 @@ struct ConfigInternal : public ConfigInternalVerificator {
         temp_translation;
     for (size_t i = 0; i < 3; ++i) {
       if (xml[i].size() != 4) {
-        LOG(WARNING) << name_ << ": param '"
-                     << name << "' is set but could not be read.";
+        LOG(WARNING) << name_ << ": param '" << name
+                     << "' is set but could not be read.";
         return;
       }
       for (size_t j = 0; j < 3; ++j) {
@@ -863,44 +873,45 @@ struct ConfigInternal : public ConfigInternalVerificator {
             Scalar>::constructAndRenormalize(temp_rot_matrix);
 
     // recombine
-    *param = kindr::minimal::QuatTransformationTemplate<Scalar>(temp_rot_quat,
-                                                                temp_translation);
+    *param = kindr::minimal::QuatTransformationTemplate<Scalar>(
+        temp_rot_quat, temp_translation);
   }
 
-  template<typename Scalar>
-  void printField(const std::string& name,
-                  const kindr::minimal::QuatTransformationTemplate<Scalar>& field) const {
+  template <typename Scalar>
+  void printField(
+      const std::string &name,
+      const kindr::minimal::QuatTransformationTemplate<Scalar> &field) const {
     if (!meta_data_->messages) {
       LOG(WARNING) << "'printField()' calls are only allowed within the "
                       "'printFields()' method.";
       return;
     }
     std::stringstream ss;
-    auto rot = field.getEigenQuaternion().toRotationMatrix().eulerAngles(0, 1, 2);
+    auto rot =
+        field.getEigenQuaternion().toRotationMatrix().eulerAngles(0, 1, 2);
     rot = rot * 180.0 / M_PI;
-    ss << "t: [" << field.getPosition()[0]<<", "
-       << field.getPosition()[1] <<", "
-       << field.getPosition()[2]<<"] RPY°: ["
-       << rot.x() <<", " << rot.y()<<", " << rot.z() << "]";
+    ss << "t: [" << field.getPosition()[0] << ", " << field.getPosition()[1]
+       << ", " << field.getPosition()[2] << "] RPY°: [" << rot.x() << ", "
+       << rot.y() << ", " << rot.z() << "]";
     printFieldInternal(name, ss.str());
   }
-#endif  // CONFIG_UTILITIES_TRANSFORMATION_ENABLED
+#endif // CONFIG_UTILITIES_TRANSFORMATION_ENABLED
 
- private:
-  friend void setupConfigFromParamMap(
-      const internal::ParamMap& params, ConfigInternal* config);
-  friend void checkValidInternal(ConfigInternal* config) ;
+private:
+  friend void setupConfigFromParamMap(const internal::ParamMap &params,
+                                      ConfigInternal *config);
+  friend void checkValidInternal(ConfigInternal *config);
 
   struct MetaData {
     std::unique_ptr<ConfigChecker> checker;
     std::unique_ptr<std::vector<std::string>> messages;
-    const internal::ParamMap* params = nullptr;
+    const internal::ParamMap *params = nullptr;
     int print_width = Settings::instance().default_print_width;
     int print_indent = Settings::instance().default_print_indent;
-    int indent = 0;  // Only used for nested printing.
+    int indent = 0; // Only used for nested printing.
 
     MetaData() = default;
-    MetaData(const MetaData& other) {
+    MetaData(const MetaData &other) {
       print_width = other.print_width;
       print_indent = other.print_indent;
       indent = other.indent;
@@ -922,18 +933,20 @@ struct ConfigInternal : public ConfigInternalVerificator {
 };
 
 // This is a dummy operator, configs provide toString().
-std::ostream& operator<<(std::ostream& os, const ConfigInternal&) { return os; }
+std::ostream &operator<<(std::ostream &os, const ConfigInternal &) {
+  return os;
+}
 
 /**
  * ==================== Exposure Utilities ====================
  */
 
-void setupConfigFromParamMap(const ParamMap& params, ConfigInternal* config) {
+void setupConfigFromParamMap(const ParamMap &params, ConfigInternal *config) {
   CHECK_NOTNULL(config);
   config->setupFromParamMap(params);
 }
 
-void checkValidInternal(ConfigInternal* config) {
+void checkValidInternal(ConfigInternal *config) {
   config->checkValidInternal();
 }
 } // namespace internal
@@ -941,27 +954,26 @@ void checkValidInternal(ConfigInternal* config) {
 /**
  * ==================== Config ====================
  */
-template<typename ConfigT>
-struct Config : public internal::ConfigInternal {
- public:
+template <typename ConfigT> struct Config : public internal::ConfigInternal {
+public:
   // Construction.
   Config() : ConfigInternal(typeid(ConfigT).name()) {}
 
   ConfigT checkValid() const {
     // Returns a copy of the config in the const case.
-    ConfigT result(*static_cast<const ConfigT*>(this));
+    ConfigT result(*static_cast<const ConfigT *>(this));
     internal::checkValidInternal(&result);
     return result;
   }
 
-  ConfigT& checkValid() {
+  ConfigT &checkValid() {
     // Returns a mutable reference.
     internal::checkValidInternal(this);
-    return *static_cast<ConfigT*>(this);
+    return *static_cast<ConfigT *>(this);
   }
 };
-}  // namespace config_utilities
-#endif  // CONFIG_UTILITIES_CORE_HPP_
+} // namespace config_utilities
+#endif // CONFIG_UTILITIES_CORE_HPP_
 
 /**
  * ==================== ROS Tools ====================
@@ -972,8 +984,8 @@ struct Config : public internal::ConfigInternal {
 namespace config_utilities {
 
 // Tool to create configs from ROS
-template<typename ConfigT>
-ConfigT getConfigFromRos(const ros::NodeHandle& nh) {
+template <typename ConfigT>
+ConfigT getConfigFromRos(const ros::NodeHandle &nh) {
   ConfigT config;
   if (!internal::isConfig(&config)) {
     LOG(ERROR) << "Can not 'getConfigFromRos()' for <ConfigT>='"
@@ -982,7 +994,7 @@ ConfigT getConfigFromRos(const ros::NodeHandle& nh) {
                   "'config_utilities::Config<ConfigT>'.";
     return config;
   }
-  auto config_ptr = dynamic_cast<Config<ConfigT>*>(&config);
+  auto config_ptr = dynamic_cast<Config<ConfigT> *>(&config);
   if (!config_ptr) {
     LOG(ERROR) << "Can not 'getConfigFromRos()' for <ConfigT>='"
                << typeid(ConfigT).name()
@@ -995,9 +1007,9 @@ ConfigT getConfigFromRos(const ros::NodeHandle& nh) {
   internal::ParamMap params;
   std::vector<std::string> keys;
   XmlRpc::XmlRpcValue value;
-  const std::string& ns = nh.getNamespace();
+  const std::string &ns = nh.getNamespace();
   nh.getParamNames(keys);
-  for (std::string& key : keys) {
+  for (std::string &key : keys) {
     if (key.find(ns) != 0) {
       continue;
     }
@@ -1010,8 +1022,6 @@ ConfigT getConfigFromRos(const ros::NodeHandle& nh) {
   internal::setupConfigFromParamMap(params, config_ptr);
   return config;
 }
-}  // namespace config_utilities
-#endif  // CONFIG_UTILITIES_ROS_HPP_
-#endif  // CONFIG_UTILITIES_ROS_ENABLED
-
-
+} // namespace config_utilities
+#endif // CONFIG_UTILITIES_ROS_HPP_
+#endif // CONFIG_UTILITIES_ROS_ENABLED

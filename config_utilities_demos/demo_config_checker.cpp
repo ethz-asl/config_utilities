@@ -15,7 +15,7 @@ struct IndependentConfig {
   std::string c = "this is c";
 
   // Use the config checker to check all params of the config.
-  [[nodiscard]] bool isValid(bool print_warnings=false) const {
+  [[nodiscard]] bool isValid(bool print_warnings = false) const {
     // Create the checker with the config name.
     config_utilities::ConfigChecker checker("IndependentConfig");
 
@@ -32,12 +32,10 @@ struct IndependentConfig {
   };
 
   // A function that guarantees validity and exits the program otherwise.
-  void checkValid() const {
-    CHECK(isValid(true));
-  };
+  void checkValid() const { CHECK(isValid(true)); };
 };
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   // Warnings are printed using GLOG, make sure to run with "--logtostderr".
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);
@@ -45,7 +43,7 @@ int main(int argc, char** argv) {
   // Create a valid (default) config.
   IndependentConfig config;
 
-  config.checkValid();  // This should simply pass.
+  config.checkValid(); // This should simply pass.
 
   // Print the result.
   std::cout << "Result: 'config' was "
@@ -56,7 +54,7 @@ int main(int argc, char** argv) {
   config.b = 0;
   config.c = "test";
 
-  config.checkValid();  // This should exit with a failed check, but raise a
+  config.checkValid(); // This should exit with a failed check, but raise a
   // warning for every wrong paramter first.
 
   return 0;
