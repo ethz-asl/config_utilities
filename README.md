@@ -20,7 +20,7 @@ Using config_utilities based configs has the following advantages:
 
 * Having all parameters in a config struct rather than with other variables makes code clearer more readable:
   ```c++
-  if (variable_x_ < config_.x_max) { doMagic(); }
+  if (x_ < config_.x_max) { doMagic(); }
   ```
 * Configs can be easily checked for validity with verbose warnings to avoid runtime issues:
   ```c++
@@ -90,7 +90,7 @@ Define configs by inheriting from the provided config and templating itself.
 All following interfaces are part of `config_utilities::Config`.
 ```c++
 struct MyConfig : public config_utilities::Config<MyConfig> {
-  double x_ = 1.0;
+  double x_max = 1.0;
 };
 ```
 #### Public Member Functions
@@ -112,7 +112,7 @@ Override these functions to implement the corresponding behavior.
 ```
 
 #### Protected Member Functions
-Use these tools within the virtual functions to create the desired behavior.\
+Use these tools within the virtual functions to create the desired behavior.
 ```c++
 // General settings.
 void setName(const std::string& name);
@@ -137,7 +137,7 @@ void checkParamCond(bool condition, const std::string &warning) const;
 
 // Use these checks within checkParams().
 MyConfig::checkParams() const {
-  checkParamGT(x_, 0.0, "x");
+  checkParamGT(x_max, 0.0, "x_max");
   ...
 }
 ```
@@ -148,7 +148,7 @@ void printText(const std::string& text) const;
 
 // Use these checks within printFields().
 MyConfig::printFields() const {
-  printField("x", x_);
+  printField("x_max", x_max);
   ...
 }
 ```
@@ -156,11 +156,11 @@ MyConfig::printFields() const {
 // Creation from ROS params.
 void rosParam<T>(const std::string& name, T* param);
 // Also works for configs, these don't require a name but an optional sub_namespace.
-void rosParam(Config* config, const std::string &sub_namespace = "");
+void rosParam(Config* config, const std::string& sub_namespace = "");
 
 // Use these checks within fromRosParam(). Defaults should be set at variable declaration.
 MyConfig::fromRosParam() {
-  rosParam("x", &x_);
+  rosParam("x_max", &x_max);
   ...
 }
 ```
