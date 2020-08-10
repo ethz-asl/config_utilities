@@ -65,8 +65,11 @@ Using config_utilities based configs has the following advantages:
   cd ~/catkin_ws/src
   git clone https://github.com/Schmluk/config_utilities.git
   
-  # If not already done so install google logging
+  # If not already done so install dependencies
   git clone git@github.com:ethz-asl/glog_catkin.git
+  git clone git@github.com:ethz-asl/gflags_catkin.git
+  git clone git@github.com:ethz-asl/minkindr.git
+  git clone git@github.com:ethz-asl/eigen_catkin.git
   
   cd config_utilities_demos
   catkin build --this
