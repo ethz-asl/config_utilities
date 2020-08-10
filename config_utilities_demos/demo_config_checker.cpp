@@ -15,7 +15,7 @@ struct IndependentConfig {
   std::string c = "this is c";
 
   // Use the config checker to check all params of the config.
-  bool isValid() const {
+  [[nodiscard]] bool isValid(bool print_warnings=false) const {
     // Create the checker with the config name.
     config_utilities::ConfigChecker checker("IndependentConfig");
 
@@ -28,12 +28,12 @@ struct IndependentConfig {
     checker.checkCond(static_cast<int>(b) >= a, "b is expected >= a.");
 
     // Return the summary.
-    return checker.isValid();
+    return checker.isValid(print_warnings);
   };
 
   // A function that guarantees validity and exits the program otherwise.
   void checkValid() const {
-    CHECK(isValid());
+    CHECK(isValid(true));
   };
 };
 
