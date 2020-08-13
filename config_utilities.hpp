@@ -36,13 +36,18 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // <ros/node_handle.h>
 #ifdef ROSCPP_NODE_HANDLE_H
+#ifndef CONFIG_UTILITIES_ROS_ENABLED
 #define CONFIG_UTILITIES_ROS_ENABLED
+#endif
 #endif
 
 // <kindr/minimal/quat-transformation.h>
 #ifdef KINDR_MINIMAL_QUAT_TRANSFORMATION_H_
+#ifndef CONFIG_UTILITIES_TRANSFORMATION_ENABLED
 #define CONFIG_UTILITIES_TRANSFORMATION_ENABLED
 #endif
+#endif
+
 
 #ifndef CONFIG_UTILITIES_CORE_HPP_
 #define CONFIG_UTILITIES_CORE_HPP_
@@ -118,7 +123,7 @@ using ParamMap = std::unordered_map<std::string, XmlRpc::XmlRpcValue>;
 
 // XML casts
 template <typename T>
-bool xmlCast(const XmlRpc::XmlRpcValue &xml, T *param = nullptr) {
+bool xmlCast(const XmlRpc::XmlRpcValue &xml, T*) {
   return false;
 }
 
@@ -395,7 +400,7 @@ public:
       : name_(other.name_), meta_data_(new MetaData(*(other.meta_data_))) {}
   ConfigInternal &operator=(const ConfigInternal &other) {
     name_ = other.name_;
-    meta_data_ = std::make_unique<MetaData>(*other.meta_data_);
+    meta_data_ = std::make_unique<MetaData>(*(other.meta_data_));
     return *this;
   }
 
