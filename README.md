@@ -16,10 +16,10 @@ Tools to make working with config structs for (ROS) C++ libraries more uniform, 
   * [inheritance](#Inheritance)
   
 # Why config_utilities
-This library was developed to provide the infrastructure to make working with config structs for object-oriented C++ libraries as simple as possible.
-Using config_utilities based configs has the following advantages:
+This library was developed to make working with config structs for object-oriented C++ libraries as simple as possible.
+Using config_utilities-based configs has the following advantages:
 
-* Having all parameters in a config struct rather than with other variables makes code clearer more readable:
+* Having all parameters in a config struct, rather than with other variables, makes code clearer more readable:
   ```c++
   if (x_ < config_.x_max) { doMagic(); }
   ```
@@ -28,11 +28,11 @@ Using config_utilities based configs has the following advantages:
   MyClass::MyClass(const Config& config) : config_(config.checkValid()) {}
   ```
 * For projects consisting of a library and a ROS-package, the configs don't have any ROS dependency and can be used in the library.
-  In the ROS-package, configs can be created from NodeHandles without additional code required:
+  In the ROS-package, configs can be created from NodeHandles without requiring additional code:
   ```c++
   MyConfig c = config_utilities::getConfigFromRos<MyConfig>(nh_private);
   ```
-* Verbose and clear printing for debugging/verification can be setup for the entire project:
+* Verbose and clear printing for debugging or verification can be setup for the entire project:
   ```c++
   config_utilities::GlobalSettings::default_print_width = 80;
   std::cout << config.toString() << std::endl;
@@ -47,13 +47,13 @@ Using config_utilities based configs has the following advantages:
    Requires [glog](https://github.com/google/glog) and [xmlrpc++](http://xmlrpc.com/).
   * Dependencies:
     ```sh
-    # System Install
+    # As System Install:
     sudo apt update
     sudo apt install libxmlrpc-c++8-dev
     sudo apt-get install libgoogle-glog-dev
     ```
     ```sh
-    # Catkin Package
+    # Alternatively, as Catkin Package:
     cd ~/catkin_ws/src
     git clone git@github.com:ethz-asl/glog_catkin.git
     catkin build glog_catkin
@@ -61,12 +61,12 @@ Using config_utilities based configs has the following advantages:
 
 * **Demos Package**
 
-  To use run the demos package it can be conveniently installed via catkin: 
+  To run the demos, the package can be conveniently installed via catkin: 
   ```sh
   cd ~/catkin_ws/src
   git clone https://github.com/Schmluk/config_utilities.git
   
-  # If not already done so install dependencies
+  # If not already done so, install dependencies:
   git clone git@github.com:ethz-asl/glog_catkin.git
   git clone git@github.com:ethz-asl/gflags_catkin.git
   git clone git@github.com:ethz-asl/minkindr.git
