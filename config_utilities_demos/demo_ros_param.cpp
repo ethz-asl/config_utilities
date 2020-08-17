@@ -62,11 +62,12 @@ struct Config : public config_utilities::Config<Config> {
 };
 
 int main(int argc, char **argv) {
-  // Warnings are printed using GLOG, make sure to run with "-alsologtostderr".
+  // Setup Logging.
+  config_utilities::RequiredArguments ra(&argc, &argv, {"--logtostderr", "--colorlogtostderr"});
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);
 
-  // Setup ros and add some params to the parameter server
+  // Setup ros and add some params to the parameter server.
   ros::init(argc, argv, "demo_ros_param");
   ros::NodeHandle nh_private("~");
   std::vector<double> vec{1.0, 2.0, 3.0};
