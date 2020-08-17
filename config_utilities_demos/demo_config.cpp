@@ -53,7 +53,7 @@ public:
 
     // General fields can be set in the constructor if required.
     Config() {
-      setName("MyClass-Config");
+      setConfigName("MyClass-Config");
       setPrintWidth(40);
       setPrintIndent(15);
     }

@@ -55,7 +55,7 @@ struct Config : public config_utilities::Config<Config> {
 
   // Optional other fields can be set in the constructor.
   Config() {
-    setName("Config (from ROS params)");
+    setConfigName("Config (from ROS params)");
     setPrintWidth(60);
     setPrintIndent(10);
   }

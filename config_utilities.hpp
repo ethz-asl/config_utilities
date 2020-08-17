@@ -137,10 +137,6 @@ class RequiredArguments {
 };
 
 /**
- * ==================== Utilities ====================
- */
-
-/**
  * ==================== Internal Utilities ====================
  */
 namespace internal {
@@ -304,6 +300,8 @@ bool xmlCast(const XmlRpc::XmlRpcValue &xml, std::vector<T> *param = nullptr) {
   }
   return true;
 }
+
+struct ConfigInternal;
 } // namespace internal
 
 /**
@@ -431,17 +429,20 @@ struct ConfigInternal : public ConfigInternalVerificator {
 public:
   explicit ConfigInternal(std::string name)
       : name_(std::move(name)), meta_data_(new MetaData()) {}
+
   ConfigInternal(const ConfigInternal &other)
       : name_(other.name_), meta_data_(new MetaData(*(other.meta_data_))) {}
-  ConfigInternal &operator=(const ConfigInternal &other) {
+
+  ConfigInternal& operator=(const ConfigInternal &other) {
     name_ = other.name_;
-    meta_data_ = std::make_unique<MetaData>(*(other.meta_data_));
+    meta_data_.reset(new MetaData(*(other.meta_data_)));
     return *this;
   }
 
   [[nodiscard]] bool isValid(bool print_warnings=false) const {
     meta_data_->checker = std::make_unique<ConfigChecker>(name_);
     meta_data_->checker->setPrintWidth(meta_data_->print_width);
+    meta_data_->print_warnings = print_warnings;
     checkParams();
     bool result = meta_data_->checker->isValid(print_warnings);
     meta_data_->checker.reset(nullptr);
@@ -477,7 +478,7 @@ public:
   }
 
   // General Tools.
-  void setName(const std::string &name) { name_ = name; }
+  void setConfigName(const std::string &name) { name_ = name; }
   void setPrintWidth(int width) { meta_data_->print_width = width; }
   void setPrintIndent(int indent) { meta_data_->print_indent = indent; }
 
@@ -556,6 +557,19 @@ protected:
       return;
     }
     meta_data_->checker->checkCond(condition, warning);
+  }
+  void checkParamConfig(const internal::ConfigInternal& config) const {
+    if (!meta_data_->checker) {
+      LOG(WARNING) << "'checkParamConfig()' calls are only allowed within the "
+                      "'checkParams()' method, no checks will be performed.";
+      return;
+    }
+    if(!config.isValid(meta_data_->print_warnings)) {
+      meta_data_->checker->checkCond(false,
+                                     "Member config '" +
+                                     config.name_ +
+                                     "' is not valid.");
+    }
   }
 
   // Printing Tools.
@@ -939,7 +953,6 @@ protected:
 private:
   friend void setupConfigFromParamMap(const internal::ParamMap &params,
                                       ConfigInternal *config);
-  friend void checkValidInternal(ConfigInternal *config);
 
   struct MetaData {
     std::unique_ptr<ConfigChecker> checker;
@@ -948,6 +961,7 @@ private:
     int print_width = GlobalSettings::default_print_width;
     int print_indent = GlobalSettings::default_print_indent;
     int indent = 0; // Only used for nested printing.
+    bool print_warnings = false;
 
     MetaData() = default;
     MetaData(const MetaData &other) {
@@ -956,16 +970,6 @@ private:
       indent = other.indent;
     }
   };
-
-  void checkValidInternal() {
-    // Implementation of validity check.
-    initializeDependentVariableDefaults();
-    meta_data_->checker = std::make_unique<ConfigChecker>(name_);
-    meta_data_->checker->setPrintWidth(meta_data_->print_width);
-    checkParams();
-    meta_data_->checker->checkValid();
-    meta_data_->checker.reset(nullptr);
-  }
 
   std::string name_;
   std::unique_ptr<MetaData> meta_data_;
@@ -985,9 +989,6 @@ void setupConfigFromParamMap(const ParamMap &params, ConfigInternal *config) {
   config->setupFromParamMap(params);
 }
 
-void checkValidInternal(ConfigInternal *config) {
-  config->checkValidInternal();
-}
 } // namespace internal
 
 /**
@@ -1000,14 +1001,14 @@ public:
 
   ConfigT checkValid() const {
     // Returns a copy of the config in the const case.
+    CHECK(isValid(true));
     ConfigT result(*static_cast<const ConfigT *>(this));
-    internal::checkValidInternal(&result);
     return result;
   }
 
   ConfigT &checkValid() {
     // Returns a mutable reference.
-    internal::checkValidInternal(this);
+    CHECK(isValid(true));
     return *static_cast<ConfigT *>(this);
   }
 };
