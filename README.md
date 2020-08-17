@@ -2,6 +2,7 @@
 Tools to make working with config structs for (ROS) C++ libraries more uniform, readable, and convenient.
 
 * **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>
+* **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich
 * **License:** BSD-3-Clause.
 
 ### Table of contents
@@ -115,13 +116,13 @@ Override these functions to implement the corresponding behavior.
 Use these tools within the virtual functions to create the desired behavior.
 ```c++
 // General settings.
-void setName(const std::string& name);
+void setConfigName(const std::string& name);
 void setPrintWidth(int width);
 void setPrintIndent(int indent);
 
 // Set these values in the constructor.
 MyConfig::MyConfig() {
-  setName("MyConfig");
+  setConfigName("MyConfig");
   ...
 }
 ```
@@ -134,6 +135,7 @@ void checkParamLE<T>(const T& param, const T& value, const std::string& name) co
 void checkParamEq<T>(const T& param, const T& value, const std::string& name) const;
 void checkParamNE<T>(const T& param, const T& value, const std::string& name) const;
 void checkParamCond(bool condition, const std::string &warning) const;
+void checkParamConfig(const Config& config) const;
 
 // Use these checks within checkParams().
 MyConfig::checkParams() const {
@@ -143,7 +145,7 @@ MyConfig::checkParams() const {
 ```
 ```c++
 // Printing.
-void printField<T>(const std::string& name, const T& field) const {
+void printField<T>(const std::string& name, const T& field) const;
 void printText(const std::string& text) const;
 
 // Use these checks within printFields().
@@ -158,7 +160,7 @@ void rosParam<T>(const std::string& name, T* param);
 // Also works for configs, these don't require a name but an optional sub_namespace.
 void rosParam(Config* config, const std::string& sub_namespace = "");
 
-// Use these checks within fromRosParam(). Defaults should be set at variable declaration.
+// Use these tools within fromRosParam(). Defaults should be set at variable declaration.
 MyConfig::fromRosParam() {
   rosParam("x_max", &x_max);
   ...
@@ -171,7 +173,7 @@ Verbose examples of the most important functionalities are given in the config_u
 ## Config Checker
 This demo describes how to use the `ConfigChecker` class to verify non-config_utilities configs in a readable way:
 ```sh
-rosrun config_utilities_demos demo_config_checker --logtostderr
+rosrun config_utilities_demos demo_config_checker
 ```
 Runs a validity check and prints all warnings to console:
 ```
@@ -184,7 +186,7 @@ Warning: Param 'c' is expected to be 'this is c' (is: 'test').
 ## Config
 This demo describes how to define custom classes that utilize a `Config` struct:
 ```sh
-rosrun config_utilities_demos demo_config --logtostderr
+rosrun config_utilities_demos demo_config
 ```
 This will setup a class using a valid config and print it to console, as well as a creation attempt with an invalid config:
 ```
@@ -201,18 +203,18 @@ And a custom message.
 ========================================
 
 ============ MyClass-Config ============
-Error: Param 'a' is expected >= '0' (is:
-        '-1').
-Error: Param 'c' is expected to be 'this
-        is c' (is: 'test').
-Error: b is expected > a.
+Warning: Param 'a' is expected >= '0' (i
+         s: '-1').
+Warning: Param 'c' is expected to be 'th
+         is is c' (is: 'test').
+Warning: b is expected > a.
 ========================================
 ```
 
 ## ROS Params
 This demo describes how to use the `config_utilities::getConfigFromRos<Config>()` function to setup configs via the ROS parameter server:
 ```sh
-roscore & rosrun config_utilities_demos demo_ros_params --logtostderr
+roscore & rosrun config_utilities_demos demo_ros_params
 ```
 Sets config params from ros and prints them to console:
 ```
@@ -227,12 +229,11 @@ T:        t: [0, 0, 0] RPY°: [-0, 0, -0]
 ``` 
 
 ## Inheritance
-## ROS Params
 This demo describes how to use nested configs, which can be used to setup derived and base classes:
 ```sh
-roscore & rosrun config_utilities_demos demo_inheritance --logtostderr
+roscore & rosrun config_utilities_demos demo_inheritance
 ```
-Sets up a derived class from ROS and prints its nested config:
+Sets up a derived class from ROS, prints its nested config, and check for validity:
 ```
 ===================== MyDerivedConfig ======================
 e:                  Bananas are yellow.
@@ -247,4 +248,15 @@ base_config:
       a:            1
       b:            2
 ============================================================
+
+======================= OtherConfig ========================
+Warning: Param 'a' is expected >= '0' (is: '-1').
+============================================================
+========================== MyBase ==========================
+Warning: Member config 'OtherConfig' is not valid.
+============================================================
+===================== MyDerivedConfig ======================
+Warning: Member config 'MyBase' is not valid.
+============================================================
+
 ``` 

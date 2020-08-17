@@ -35,7 +35,7 @@ struct Config : public config_utilities::Config<Config> {
     rosParam("c", &c);
     rosParam("vec", &vec);
     rosParam("map", &map);
-    rosParam("T", &T); // This is enabled due to minkindr include.
+    rosParam("T", &T);  // This is enabled due to minkindr include.
 
     // Any custom data can be gathered via XmlRpc.
     XmlRpc::XmlRpcValue xml_rpc_value;
@@ -50,20 +50,21 @@ struct Config : public config_utilities::Config<Config> {
     printField("c", c);
     printField("vec", vec);
     printField("map", map);
-    printField("T", T); // This is enabled due to minkindr include.
+    printField("T", T);  // This is enabled due to minkindr include.
   }
 
   // Optional other fields can be set in the constructor.
   Config() {
-    setName("Config (from ROS params)");
+    setConfigName("Config (from ROS params)");
     setPrintWidth(60);
     setPrintIndent(10);
   }
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   // Setup Logging.
-  config_utilities::RequiredArguments ra(&argc, &argv, {"--logtostderr", "--colorlogtostderr"});
+  config_utilities::RequiredArguments ra(
+      &argc, &argv, {"--logtostderr", "--colorlogtostderr"});
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);
 
