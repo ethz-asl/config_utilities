@@ -10,7 +10,7 @@
 
 // Define a class that uses a config.
 class MyClass {
-public:
+ public:
   // Any new Config can be defined by inheritnig from config_utility::Config and
   // templating itself.
   struct Config : public config_utilities::Config<Config> {
@@ -61,18 +61,19 @@ public:
 
   // Use the config for construction. All configs expose the functions
   // 'bool isValid() const' and 'Config checkValid() const'.
-  explicit MyClass(const Config &config) : config_(config.checkValid()) {}
+  explicit MyClass(const Config& config) : config_(config.checkValid()) {}
 
   // Use the toString() method for printing.
   void print() const { std::cout << config_.toString() << std::endl; }
 
-private:
+ private:
   const Config config_;
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   // Setup logging.
-  config_utilities::RequiredArguments ra(&argc, &argv, {"--logtostderr", "--colorlogtostderr"});
+  config_utilities::RequiredArguments ra(
+      &argc, &argv, {"--logtostderr", "--colorlogtostderr"});
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);
 

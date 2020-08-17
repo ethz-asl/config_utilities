@@ -35,16 +35,17 @@ struct IndependentConfig {
   void checkValid() const { CHECK(isValid(true)); };
 };
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   // Setup Logging.
-  config_utilities::RequiredArguments ra(&argc, &argv, {"--logtostderr", "--colorlogtostderr"});
+  config_utilities::RequiredArguments ra(
+      &argc, &argv, {"--logtostderr", "--colorlogtostderr"});
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);
 
   // Create a valid (default) config.
   IndependentConfig config;
 
-  config.checkValid(); // This should simply pass.
+  config.checkValid();  // This should simply pass.
 
   // Print the result.
   std::cout << "Result: 'config' was "
@@ -55,7 +56,7 @@ int main(int argc, char **argv) {
   config.b = 0;
   config.c = "test";
 
-  config.checkValid(); // This should exit with a failed check, but raise a
+  config.checkValid();  // This should exit with a failed check, but raise a
   // warning for every wrong paramter first.
 
   return 0;
