@@ -71,7 +71,8 @@ private:
 };
 
 int main(int argc, char **argv) {
-  // Warnings are printed using GLOG, make sure to run with "--alsologtostderr".
+  // Setup logging.
+  config_utilities::RequiredArguments ra(&argc, &argv, {"--logtostderr", "--colorlogtostderr"});
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);
 

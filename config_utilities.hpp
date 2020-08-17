@@ -61,6 +61,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <typeinfo>
 #include <unordered_map>
 #include <utility>
+#include <algorithm>
+#include <cstring>
 
 #include <glog/logging.h>
 #include <xmlrpcpp/XmlRpcValue.h>
@@ -92,6 +94,62 @@ private:
 
 // Access.
 internal::Settings &Settings() { return internal::Settings::instance(); }
+
+/**
+ * ==================== Utilities ====================
+ */
+
+// Add required command line arguments if needed. Keeps memory over the scope
+// of existence for this class.
+class RequiredArguments {
+ public:
+  explicit RequiredArguments(int* argc, char*** argv,
+                            const std::vector<std::string>& arguments) {
+    // Read old arguments to string.
+    std::vector<std::string> old_args;
+    old_args.reserve(*argc);
+    for (int i = 0; i < *argc; ++i) {
+      old_args.emplace_back((*argv)[i]);
+    }
+
+    // Detect new arguments.
+    std::vector<std::string> added_args;
+    for (const std::string& arg : arguments) {
+      if (std::find(old_args.begin(), old_args.end(), arg) == old_args.end()) {
+        added_args.push_back(arg);
+      }
+    }
+
+    // Write old arguments.
+    *argc = old_args.size() + added_args.size();
+    argv_aux_ = std::vector<std::unique_ptr<char>>(*argc);
+    for (int i = 0; i < old_args.size(); ++i) {
+      argv_aux_[i].reset(new char[std::strlen((*argv)[i]) + 1]);
+      strcpy(argv_aux_[i].get(), (*argv)[i]);
+    }
+
+    // Write new arguments.
+    for (int i = old_args.size(); i < *argc; ++i) {
+      argv_aux_[i].reset(new char[std::strlen(added_args[i - old_args.size()].c_str()) + 1]); // Extra char for null-terminated string.
+      strcpy(argv_aux_[i].get(), added_args[i - old_args.size()].c_str());
+    }
+
+    // Write argv.
+    argv_.reserve(*argc);
+    for (int i = 0; i < *argc; ++i) {
+      argv_[i] = argv_aux_[i].get();
+    }
+    *argv = argv_.data();
+  }
+
+ private:
+  std::vector<char*> argv_;
+  std::vector<std::unique_ptr<char>> argv_aux_;
+};
+
+/**
+ * ==================== Utilities ====================
+ */
 
 /**
  * ==================== Internal Utilities ====================
@@ -270,22 +328,33 @@ public:
       : name_(std::move(module_name)),
         print_width_(Settings().default_print_width){}
 
-            [[nodiscard]] bool isValid(bool print_warnings = false) const {
+  [[nodiscard]] bool isValid(bool print_warnings = false) const {
     if (warnings_.empty()) {
       return true;
     }
     if (print_warnings) {
-      print("Warning");
-    }
+      std::string sev = "Warning: ";
+      int length = print_width_ - sev.length();
+      std::string warning =
+          "\n" + internal::printCenter(name_, print_width_, '=');
+      for (std::string w : warnings_) {
+        std::string line = sev;
+        while (w.length() > length) {
+          line.append(w.substr(0, length));
+          w = w.substr(length);
+          warning.append("\n" + line);
+          line = std::string(sev.length(), ' ');
+        }
+        warning.append("\n" + line + w);
+      }
+      warning = warning + "\n" + std::string(print_width_, '=');
+      LOG(WARNING) << warning;
+      }
     return false;
   }
 
   void checkValid() const {
-    if (!isValid(false)) {
-      print("Error");
-      const bool config_params_are_valid = false;
-      CHECK(config_params_are_valid);
-    }
+      CHECK(isValid(true));
   }
 
   void reset() { warnings_.clear(); }
@@ -357,29 +426,6 @@ public:
   }
 
   void setPrintWidth(int width) { print_width_ = width; }
-
-private:
-  void print(const std::string &severity) const {
-    std::string sev = "";
-    if (!severity.empty()) {
-      sev.append(severity + ": ");
-    }
-    int length = print_width_ - sev.length();
-    std::string warning =
-        "\n" + internal::printCenter(name_, print_width_, '=');
-    for (std::string w : warnings_) {
-      std::string line = sev;
-      while (w.length() > length) {
-        line.append(w.substr(0, length));
-        w = w.substr(length);
-        warning.append("\n" + line);
-        line = std::string(sev.length(), ' ');
-      }
-      warning.append("\n" + line + w);
-    }
-    warning = warning + "\n" + std::string(print_width_, '=');
-    LOG(ERROR) << warning;
-  }
 
 private:
   const std::string name_;
