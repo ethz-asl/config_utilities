@@ -1,5 +1,8 @@
 /**
-AUTHOR: Lukas Schmid <schmluk@mavt.ethz.ch>
+AUTHOR:       Lukas Schmid <schmluk@mavt.ethz.ch>
+AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
+SOURCE:       https://github.com/ethz-asl/config_utilities
+VERSION:      1.0.0
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
 
