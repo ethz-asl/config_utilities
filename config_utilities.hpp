@@ -72,28 +72,17 @@ namespace config_utilities {
 /**
  * ==================== Settings ====================
  */
-namespace internal {
-struct Settings {
-  Settings(const Settings &other) = delete;
-  Settings &operator=(const Settings &other) = delete;
-
-  // Settings
-  unsigned int default_print_width = 80;
-  unsigned int default_print_indent = 30;
-  unsigned int default_subconfig_indent = 3;
-
-  static Settings &instance() {
-    static Settings settings;
-    return settings;
-  }
-
-private:
-  Settings() = default;
+ // Settings.
+struct GlobalSettings {
+  static unsigned int default_print_width;
+  static unsigned int default_print_indent;
+  static unsigned int default_subconfig_indent;
 };
-} // namespace internal
 
-// Access.
-internal::Settings &Settings() { return internal::Settings::instance(); }
+// Defaults.
+unsigned int GlobalSettings::default_print_width = 80;
+unsigned int GlobalSettings::default_print_indent = 30;
+unsigned int GlobalSettings::default_subconfig_indent = 3;
 
 /**
  * ==================== Utilities ====================
@@ -326,7 +315,7 @@ class ConfigChecker {
 public:
   explicit ConfigChecker(std::string module_name)
       : name_(std::move(module_name)),
-        print_width_(Settings().default_print_width){}
+        print_width_(GlobalSettings::default_print_width){}
 
   [[nodiscard]] bool isValid(bool print_warnings = false) const {
     if (warnings_.empty()) {
@@ -688,7 +677,7 @@ private:
     meta_data_->messages->emplace_back(std::string(meta_data_->indent, ' ') +
                                        name + ":");
     meta_data_->messages->emplace_back(field->toStringInternal(
-        meta_data_->indent + Settings::instance().default_subconfig_indent,
+        meta_data_->indent + GlobalSettings::default_subconfig_indent,
         meta_data_->print_width, meta_data_->print_indent));
   }
 
@@ -956,8 +945,8 @@ private:
     std::unique_ptr<ConfigChecker> checker;
     std::unique_ptr<std::vector<std::string>> messages;
     const internal::ParamMap *params = nullptr;
-    int print_width = Settings::instance().default_print_width;
-    int print_indent = Settings::instance().default_print_indent;
+    int print_width = GlobalSettings::default_print_width;
+    int print_indent = GlobalSettings::default_print_indent;
     int indent = 0; // Only used for nested printing.
 
     MetaData() = default;
