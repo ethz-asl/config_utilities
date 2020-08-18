@@ -134,7 +134,9 @@ void checkParamLT<T>(const T& param, const T& value, const std::string& name) co
 void checkParamLE<T>(const T& param, const T& value, const std::string& name) const;
 void checkParamEq<T>(const T& param, const T& value, const std::string& name) const;
 void checkParamNE<T>(const T& param, const T& value, const std::string& name) const;
+// Any condition can be checked using checkParamCond().
 void checkParamCond(bool condition, const std::string &warning) const;
+// Validity of member configs can be checked using checkParamConfig().
 void checkParamConfig(const Config& config) const;
 
 // Use these checks within checkParams().
@@ -148,7 +150,7 @@ MyConfig::checkParams() const {
 void printField<T>(const std::string& name, const T& field) const;
 void printText(const std::string& text) const;
 
-// Use these checks within printFields().
+// Use these tools within printFields().
 MyConfig::printFields() const {
   printField("x_max", x_max);
   ...
@@ -159,6 +161,8 @@ MyConfig::printFields() const {
 void rosParam<T>(const std::string& name, T* param);
 // Also works for configs, these don't require a name but an optional sub_namespace.
 void rosParam(Config* config, const std::string& sub_namespace = "");
+// The namespace of the creating nodehandle can be querried via rosParamNameSpace().
+string rosParamNameSpace();
 
 // Use these tools within fromRosParam(). Defaults should be set at variable declaration.
 MyConfig::fromRosParam() {
@@ -219,12 +223,13 @@ roscore & rosrun config_utilities_demos demo_ros_params
 Sets config params from ros and prints them to console:
 ```
 ================= Config (from ROS params) =================
-a:        123
-b:        45.6
-c:        seven-eight-nine
-vec:      [1, 2, 3]
-map:      {m1: 1, m2: 2}
-T:        t: [0, 0, 0] RPY°: [-0, 0, -0]
+a:             123
+b:             45.6
+c:             seven-eight-nine
+vec:           [1, 2, 3]
+map:           {m1: 1, m2: 2}
+T:             t: [0, 0, 0] RPY°: [-0, 0, -0]
+namespace:     /demo_ros_param
 ============================================================
 ``` 
 

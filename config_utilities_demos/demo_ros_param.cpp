@@ -27,6 +27,7 @@ struct Config : public config_utilities::Config<Config> {
   std::vector<double> vec;
   std::map<std::string, int> map;
   Transformation T;
+  std::string ns;
 
   // Define the parameter names to read from ROS param server.
   void fromRosParam() override {
@@ -41,6 +42,9 @@ struct Config : public config_utilities::Config<Config> {
     XmlRpc::XmlRpcValue xml_rpc_value;
     rosParam("custom_data", &xml_rpc_value);
     /* Do some magic with 'xml_rpc_value' here */
+
+    // The namespace of the nodehandle is exposed via rosParamNameSpace():
+    ns = rosParamNameSpace();
   }
 
   // Optionally implement printing.
@@ -51,13 +55,14 @@ struct Config : public config_utilities::Config<Config> {
     printField("vec", vec);
     printField("map", map);
     printField("T", T);  // This is enabled due to minkindr include.
+    printField("namespace", ns);
   }
 
   // Optional other fields can be set in the constructor.
   Config() {
     setConfigName("Config (from ROS params)");
     setPrintWidth(60);
-    setPrintIndent(10);
+    setPrintIndent(15);
   }
 };
 
