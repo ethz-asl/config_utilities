@@ -41,15 +41,15 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef ROSCPP_NODE_HANDLE_H
 #ifndef CONFIG_UTILITIES_ROS_ENABLED
 #define CONFIG_UTILITIES_ROS_ENABLED
-#endif
-#endif
+#endif  // CONFIG_UTILITIES_ROS_ENABLED
+#endif  // ROSCPP_NODE_HANDLE_H
 
 // <kindr/minimal/quat-transformation.h>
 #ifdef KINDR_MINIMAL_QUAT_TRANSFORMATION_H_
 #ifndef CONFIG_UTILITIES_TRANSFORMATION_ENABLED
 #define CONFIG_UTILITIES_TRANSFORMATION_ENABLED
-#endif
-#endif
+#endif  // CONFIG_UTILITIES_TRANSFORMATION_ENABLED
+#endif  // KINDR_MINIMAL_QUAT_TRANSFORMATION_H_
 
 #ifndef CONFIG_UTILITIES_CORE_HPP_
 #define CONFIG_UTILITIES_CORE_HPP_
@@ -879,6 +879,18 @@ struct ConfigInternal : public ConfigInternalVerificator {
     setupConfigFromParamMap(params, config);
   }
 
+  std::string rosParamNameSpace() {
+    // Check scope and param map are valid.
+    if (!meta_data_->params) {
+      LOG(WARNING) << "'rosParamNameSpace()' calls are only allowed within the "
+                      "'fromRosParam()' method, no param will be loaded.";
+      return "";
+    }
+    std::string ns;
+    rosParamInternal("_name_space", &ns);
+    return ns;
+  }
+
 #ifdef CONFIG_UTILITIES_TRANSFORMATION_ENABLED
   template <typename Scalar>
   void rosParam(const std::string& name,
@@ -1057,6 +1069,7 @@ ConfigT getConfigFromRos(const ros::NodeHandle& nh) {
     nh.getParam(key, value);
     params[key] = value;
   }
+  params["_name_space"] = ns;
 
   // Setup.
   internal::setupConfigFromParamMap(params, config_ptr);
