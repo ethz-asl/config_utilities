@@ -34,7 +34,7 @@ Using config_utilities-based configs has the following advantages:
   ```
 * Verbose and clear printing for debugging or verification can be setup for the entire project:
   ```c++
-  config_utilities::GlobalSettings::default_print_width = 80;
+  config_utilities::GlobalSettings().default_print_width = 80;
   std::cout << config.toString() << std::endl;
   ```
 * Everything related to a config is located at its definition/implementation, making all its properties clear and easy to change.
@@ -82,8 +82,8 @@ Briefly describes the interfaces available and how to use them.
 #### Settings
 Set default settings for the entire project. Set these before instantiation of a config.
 ```c++
-config_utilities::GlobalSettings::default_print_width = 80;
-config_utilities::GlobalSettings::default_print_indent = 30;
+config_utilities::GlobalSettings().default_print_width = 80;
+config_utilities::GlobalSettings().default_print_indent = 30;
 ...
 ```
 #### Configs
