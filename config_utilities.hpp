@@ -2,7 +2,7 @@
 AUTHOR:       Lukas Schmid <schmluk@mavt.ethz.ch>
 AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
 SOURCE:       https://github.com/ethz-asl/config_utilities
-VERSION:      1.0.0
+VERSION:      1.0.1
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
 
@@ -74,17 +74,30 @@ namespace config_utilities {
 /**
  * ==================== Settings ====================
  */
-// Settings.
+namespace internal {
 struct GlobalSettings {
-  static unsigned int default_print_width;
-  static unsigned int default_print_indent;
-  static unsigned int default_subconfig_indent;
-};
+  GlobalSettings(const GlobalSettings& other) = delete;
+  GlobalSettings& operator=(const GlobalSettings& other) = delete;
 
-// Defaults.
-unsigned int GlobalSettings::default_print_width = 80;
-unsigned int GlobalSettings::default_print_indent = 30;
-unsigned int GlobalSettings::default_subconfig_indent = 3;
+  // Settings
+  unsigned int default_print_width = 80;
+  unsigned int default_print_indent = 30;
+  unsigned int default_subconfig_indent = 3;
+
+  static GlobalSettings& instance() {
+    static GlobalSettings settings;
+    return settings;
+  }
+
+ private:
+  GlobalSettings() = default;
+};
+}  // namespace internal
+
+// Access.
+inline internal::GlobalSettings& GlobalSettings() {
+  return internal::GlobalSettings::instance();
+}
 
 /**
  * ==================== Utilities ====================
@@ -145,7 +158,8 @@ class RequiredArguments {
  */
 namespace internal {
 // Printing utility
-std::string printCenter(const std::string& text, int width, char symbol) {
+inline std::string printCenter(const std::string& text, int width,
+                               char symbol) {
   int first = std::max((width - static_cast<int>(text.length()) - 2) / 2, 0);
   std::string result = std::string(first, symbol) + " " + text + " ";
   result += std::string(std::max(width - static_cast<int>(result.length()), 0),
@@ -156,7 +170,7 @@ std::string printCenter(const std::string& text, int width, char symbol) {
 // Type verification
 struct ConfigInternalVerificator {};
 template <typename T>
-bool isConfig(const T* candidate) {
+inline bool isConfig(const T* candidate) {
   try {
     throw candidate;
   } catch (const ConfigInternalVerificator*) {
@@ -171,11 +185,11 @@ using ParamMap = std::unordered_map<std::string, XmlRpc::XmlRpcValue>;
 
 // XML casts
 template <typename T>
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, T*) {
+inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, T*) {
   return false;
 }
 
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, bool* param = nullptr) {
+inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, bool* param = nullptr) {
   switch (xml.getType()) {
     case XmlRpc::XmlRpcValue::Type::TypeBoolean: {
       if (param) {
@@ -200,7 +214,7 @@ bool xmlCast(const XmlRpc::XmlRpcValue& xml, bool* param = nullptr) {
   }
 }
 
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, int* param = nullptr) {
+inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, int* param = nullptr) {
   switch (xml.getType()) {
     case XmlRpc::XmlRpcValue::Type::TypeBoolean: {
       if (param) {
@@ -225,7 +239,7 @@ bool xmlCast(const XmlRpc::XmlRpcValue& xml, int* param = nullptr) {
   }
 }
 
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, float* param = nullptr) {
+inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, float* param = nullptr) {
   switch (xml.getType()) {
     case XmlRpc::XmlRpcValue::Type::TypeBoolean: {
       if (param) {
@@ -250,7 +264,7 @@ bool xmlCast(const XmlRpc::XmlRpcValue& xml, float* param = nullptr) {
   }
 }
 
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, double* param = nullptr) {
+inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, double* param = nullptr) {
   switch (xml.getType()) {
     case XmlRpc::XmlRpcValue::Type::TypeBoolean: {
       if (param) {
@@ -275,7 +289,8 @@ bool xmlCast(const XmlRpc::XmlRpcValue& xml, double* param = nullptr) {
   }
 }
 
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, std::string* param = nullptr) {
+inline bool xmlCast(const XmlRpc::XmlRpcValue& xml,
+                    std::string* param = nullptr) {
   switch (xml.getType()) {
     case XmlRpc::XmlRpcValue::Type::TypeString: {
       if (param) {
@@ -289,7 +304,8 @@ bool xmlCast(const XmlRpc::XmlRpcValue& xml, std::string* param = nullptr) {
 }
 
 template <typename T>
-bool xmlCast(const XmlRpc::XmlRpcValue& xml, std::vector<T>* param = nullptr) {
+inline bool xmlCast(const XmlRpc::XmlRpcValue& xml,
+                    std::vector<T>* param = nullptr) {
   if (xml.getType() != XmlRpc::XmlRpcValue::TypeArray) {
     return false;
   }
@@ -318,7 +334,7 @@ class ConfigChecker {
  public:
   explicit ConfigChecker(std::string module_name)
       : name_(std::move(module_name)),
-        print_width_(GlobalSettings::default_print_width){}
+        print_width_(GlobalSettings().default_print_width){}
 
             [[nodiscard]] bool isValid(bool print_warnings = false) const {
     if (warnings_.empty()) {
@@ -472,7 +488,8 @@ struct ConfigInternal : public ConfigInternalVerificator {
 
   virtual void printFields() const {
     meta_data_->messages->emplace_back(
-        "\nThe 'printFields()' method is not implemented.");
+        std::string(meta_data_->indent, ' ')
+            .append("The 'printFields()' method is not implemented."));
   }
 
   virtual void fromRosParam() {
@@ -643,7 +660,8 @@ struct ConfigInternal : public ConfigInternalVerificator {
                       "'printFields()' method.";
       return;
     }
-    meta_data_->messages->emplace_back(text);
+    meta_data_->messages->emplace_back(
+        std::string(meta_data_->indent, ' ').append(text));
   }
 
  private:
@@ -692,7 +710,8 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->messages->emplace_back(std::string(meta_data_->indent, ' ') +
                                        name + ":");
     meta_data_->messages->emplace_back(field->toStringInternal(
-        meta_data_->indent + GlobalSettings::default_subconfig_indent,
+        meta_data_->indent +
+            GlobalSettings::instance().default_subconfig_indent,
         meta_data_->print_width, meta_data_->print_indent));
   }
 
@@ -971,8 +990,8 @@ struct ConfigInternal : public ConfigInternalVerificator {
     std::unique_ptr<ConfigChecker> checker;
     std::unique_ptr<std::vector<std::string>> messages;
     const internal::ParamMap* params = nullptr;
-    int print_width = GlobalSettings::default_print_width;
-    int print_indent = GlobalSettings::default_print_indent;
+    int print_width = GlobalSettings::instance().default_print_width;
+    int print_indent = GlobalSettings::instance().default_print_indent;
     int indent = 0;  // Only used for nested printing.
     bool print_warnings = false;
 
@@ -989,13 +1008,16 @@ struct ConfigInternal : public ConfigInternalVerificator {
 };
 
 // This is a dummy operator, configs provide toString().
-std::ostream& operator<<(std::ostream& os, const ConfigInternal&) { return os; }
+inline std::ostream& operator<<(std::ostream& os, const ConfigInternal&) {
+  return os;
+}
 
 /**
- * ==================== Exposure Utilities ====================
+ * ==================== Exposure Utilities ===================
  */
 
-void setupConfigFromParamMap(const ParamMap& params, ConfigInternal* config) {
+inline void setupConfigFromParamMap(const ParamMap& params,
+                                    ConfigInternal* config) {
   CHECK_NOTNULL(config);
   config->setupFromParamMap(params);
 }

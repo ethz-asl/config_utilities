@@ -1,8 +1,8 @@
 # config_utilities
-Tools to make working with config structs for (ROS) C++ libraries more uniform, readable, and convenient.
+Utility tools to make working with config structs for (ROS) C++ libraries more uniform, readable, and convenient.
 
-* **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>
-* **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich
+* **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>.
+* **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
 * **License:** BSD-3-Clause.
 
 ### Table of contents
@@ -34,11 +34,11 @@ Using config_utilities-based configs has the following advantages:
   ```
 * Verbose and clear printing for debugging or verification can be setup for the entire project:
   ```c++
-  config_utilities::GlobalSettings::default_print_width = 80;
+  config_utilities::GlobalSettings().default_print_width = 80;
   std::cout << config.toString() << std::endl;
   ```
 * Everything related to a config is located at its definition/implementation, making all its properties clear and easy to change.
-  No need for additional fiels or functions where changes could be overlooked.
+  No need for additional code in other files where changes could be overlooked.
 
 # Installation
 * **Header-Only**
@@ -82,24 +82,24 @@ Briefly describes the interfaces available and how to use them.
 #### Settings
 Set default settings for the entire project. Set these before instantiation of a config.
 ```c++
-config_utilities::GlobalSettings::default_print_width = 80;
-config_utilities::GlobalSettings::default_print_indent = 30;
+config_utilities::GlobalSettings().default_print_width = 80;
+config_utilities::GlobalSettings().default_print_indent = 30;
 ...
 ```
 #### Configs
-Define configs by inheriting from the provided config and templating itself. 
-All following interfaces are part of `config_utilities::Config`.
+Define configs by inheriting from the provided `config_utilities::Config` and templating itself. 
+All following interfaces are part of such a `Config`.
 ```c++
 struct MyConfig : public config_utilities::Config<MyConfig> {
   double x_max = 1.0;
 };
 ```
 #### Public Member Functions
-Use these to interact with a config.
+Use these to interact with a `Config`.
 ```c++
 bool isValid(bool print_warnings=false) const;  // Validity information.
-ConfigT checkValid() const;  // Enforce validity.
-ConfigT& checkValid(); 
+Config checkValid() const;  // Enforce validity.
+Config& checkValid(); 
 string toString() const;  // Printing.
 ```
 
@@ -263,5 +263,4 @@ Warning: Member config 'OtherConfig' is not valid.
 ===================== MyDerivedConfig ======================
 Warning: Member config 'MyBase' is not valid.
 ============================================================
-
 ``` 
