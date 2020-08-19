@@ -2,7 +2,7 @@
 AUTHOR:       Lukas Schmid <schmluk@mavt.ethz.ch>
 AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
 SOURCE:       https://github.com/ethz-asl/config_utilities
-VERSION:      1.0.0
+VERSION:      1.0.1
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
 
@@ -488,7 +488,8 @@ struct ConfigInternal : public ConfigInternalVerificator {
 
   virtual void printFields() const {
     meta_data_->messages->emplace_back(
-        "\nThe 'printFields()' method is not implemented.");
+        std::string(meta_data_->indent, ' ')
+            .append("The 'printFields()' method is not implemented."));
   }
 
   virtual void fromRosParam() {
@@ -659,7 +660,8 @@ struct ConfigInternal : public ConfigInternalVerificator {
                       "'printFields()' method.";
       return;
     }
-    meta_data_->messages->emplace_back(text);
+    meta_data_->messages->emplace_back(
+        std::string(meta_data_->indent, ' ').append(text));
   }
 
  private:
