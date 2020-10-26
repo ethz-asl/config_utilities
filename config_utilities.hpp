@@ -2,7 +2,7 @@
 AUTHOR:       Lukas Schmid <schmluk@mavt.ethz.ch>
 AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
 SOURCE:       https://github.com/ethz-asl/config_utilities
-VERSION:      1.0.1
+VERSION:      1.0.2
 LICENSE:      BSD-3-Clause
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
@@ -34,7 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 // Raise a redefined warning if different versions are used. v=MMmmPP.
-#define CONFIG_UTILITIES_VERSION 010001
+#define CONFIG_UTILITIES_VERSION 010002
 
 /**
  * Depending on which headers are available, ROS dependencies are included in
@@ -474,7 +474,13 @@ struct ConfigInternal : public ConfigInternalVerificator {
 
       [[nodiscard]] std::string toString() const {
     meta_data_->messages = std::make_unique<std::vector<std::string>>();
-    printFields();
+    meta_data_->merged_setup_already_used = true;
+    meta_data_->merged_setup_set_params = false;
+    // NOTE: setupParamsAndPrinting() does not modify 'this' in printing mode.
+    ((ConfigInternal*)this)->setupParamsAndPrinting();
+    if (!meta_data_->merged_setup_already_used) {
+      printFields();
+    }
     std::string result =
         internal::printCenter(name_, meta_data_->print_width, '=');
     for (const std::string& msg : *(meta_data_->messages)) {
@@ -499,6 +505,12 @@ struct ConfigInternal : public ConfigInternalVerificator {
   virtual void fromRosParam() {
     LOG(WARNING) << "fromRosParam() is not implemented for '" << name_
                  << "', no parameters will be loaded.";
+  }
+
+  virtual void setupParamsAndPrinting() {
+    // If this is overwritten this won't be set and will precede fromRosParam
+    // and printField.
+    meta_data_->merged_setup_already_used = false;
   }
 
   // General Tools.
@@ -668,6 +680,15 @@ struct ConfigInternal : public ConfigInternalVerificator {
         std::string(meta_data_->indent, ' ').append(text));
   }
 
+  template <typename T>
+  void setupParam(const std::string& name, T* param) {
+    if (meta_data_->merged_setup_set_params) {
+      rosParam(name, param);
+    } else {
+      printField(name, *param);
+    }
+  }
+
  private:
   void printFieldInternal(const std::string& name,
                           const std::string& field) const {
@@ -744,7 +765,12 @@ struct ConfigInternal : public ConfigInternalVerificator {
 
   void setupFromParamMap(const internal::ParamMap& params) {
     meta_data_->params = &params;
-    fromRosParam();
+    meta_data_->merged_setup_already_used = true;
+    meta_data_->merged_setup_set_params = true;
+    setupParamsAndPrinting();
+    if (!meta_data_->merged_setup_already_used) {
+      fromRosParam();
+    }
     meta_data_->params = nullptr;
   }
 
@@ -991,13 +1017,18 @@ struct ConfigInternal : public ConfigInternalVerificator {
                                       ConfigInternal* config);
 
   struct MetaData {
+    // tools
     std::unique_ptr<ConfigChecker> checker;
     std::unique_ptr<std::vector<std::string>> messages;
     const internal::ParamMap* params = nullptr;
+
+    // settings and variables
     int print_width = GlobalSettings::instance().default_print_width;
     int print_indent = GlobalSettings::instance().default_print_indent;
     int indent = 0;  // Only used for nested printing.
     bool print_warnings = false;
+    bool merged_setup_already_used = false;
+    bool merged_setup_set_params = false;
 
     MetaData() = default;
     MetaData(const MetaData& other) {

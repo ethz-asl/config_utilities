@@ -110,6 +110,7 @@ Override these functions to implement the corresponding behavior.
   virtual void checkParams() const;  // Param validity checks.
   virtual void printFields() const;  // Printing behavior.
   virtual void fromRosParam();  // ROS-creation behavior.
+  virtual void setupParamsAndPrinting();  // Combines fromRosParam() and printFields() in a single call. Precedes these functions if implemented. 
 ```
 
 #### Protected Member Functions
@@ -167,6 +168,16 @@ string rosParamNameSpace();
 // Use these tools within fromRosParam(). Defaults should be set at variable declaration.
 MyConfig::fromRosParam() {
   rosParam("x_max", &x_max);
+  ...
+}
+```
+```c++
+// Merged param and printing setup. Internally uses the same tools as printField() and rosParam() to avoid code duplication.
+void setupParam<T>(const std::string& name, T* param);
+
+// Use these tools within setupParamsAndPrinting().
+MyConfig::setupParamsAndPrinting() {
+  setupParam("x_max", &x_max);
   ...
 }
 ```
