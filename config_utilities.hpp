@@ -772,6 +772,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
       fromRosParam();
     }
     meta_data_->params = nullptr;
+    initializeDependentVariableDefaults();
   }
 
   template <typename T>
