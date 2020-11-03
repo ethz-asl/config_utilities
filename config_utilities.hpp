@@ -140,7 +140,7 @@ class RequiredArguments {
     for (int i = old_args.size(); i < *argc; ++i) {
       argv_aux_[i].reset(
           new char[std::strlen(added_args[i - old_args.size()].c_str()) +
-                   1]);  // Extra char for null-terminated string.
+              1]);  // Extra char for null-terminated string.
       strcpy(argv_aux_[i].get(), added_args[i - old_args.size()].c_str());
     }
 
@@ -340,7 +340,7 @@ class ConfigChecker {
       : name_(std::move(module_name)),
         print_width_(GlobalSettings().default_print_width){}
 
-            [[nodiscard]] bool isValid(bool print_warnings = false) const {
+  bool isValid(bool print_warnings = false) const {
     if (warnings_.empty()) {
       return true;
     }
@@ -462,7 +462,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     return *this;
   }
 
-  [[nodiscard]] bool isValid(bool print_warnings = false) const {
+  bool isValid(bool print_warnings = false) const {
     meta_data_->checker = std::make_unique<ConfigChecker>(name_);
     meta_data_->checker->setPrintWidth(meta_data_->print_width);
     meta_data_->print_warnings = print_warnings;
@@ -472,12 +472,14 @@ struct ConfigInternal : public ConfigInternalVerificator {
     return result;
   }
 
-      [[nodiscard]] std::string toString() const {
+  std::string toString() const {
     meta_data_->messages = std::make_unique<std::vector<std::string>>();
     meta_data_->merged_setup_already_used = true;
     meta_data_->merged_setup_set_params = false;
+    meta_data_->merged_setup_currently_active = true;
     // NOTE: setupParamsAndPrinting() does not modify 'this' in printing mode.
     ((ConfigInternal*)this)->setupParamsAndPrinting();
+    meta_data_->merged_setup_currently_active = false;
     if (!meta_data_->merged_setup_already_used) {
       printFields();
     }
@@ -610,8 +612,10 @@ struct ConfigInternal : public ConfigInternalVerificator {
   template <typename T>
   void printField(const std::string& name, const T& field) const {
     if (!meta_data_->messages) {
-      LOG(WARNING) << "'printField()' calls are only allowed within the "
-                      "'printFields()' method.";
+      if (!meta_data_->merged_setup_currently_active) {
+        LOG(WARNING) << "'printField()' calls are only allowed within the "
+                        "'printFields()' method.";
+      }
       return;
     }
     if (isConfig(&field)) {
@@ -634,8 +638,10 @@ struct ConfigInternal : public ConfigInternalVerificator {
   template <typename T>
   void printField(const std::string& name, const std::vector<T>& field) const {
     if (!meta_data_->messages) {
-      LOG(WARNING) << "'printField()' calls are only allowed within the "
-                      "'printFields()' method.";
+      if (!meta_data_->merged_setup_currently_active) {
+        LOG(WARNING) << "'printField()' calls are only allowed within the "
+                        "'printFields()' method.";
+      }
       return;
     }
     std::stringstream ss;
@@ -654,8 +660,10 @@ struct ConfigInternal : public ConfigInternalVerificator {
   void printField(const std::string& name,
                   const std::map<std::string, T>& field) const {
     if (!meta_data_->messages) {
-      LOG(WARNING) << "'printField()' calls are only allowed within the "
-                      "'printFields()' method.";
+      if (!meta_data_->merged_setup_currently_active) {
+        LOG(WARNING) << "'printField()' calls are only allowed within the "
+                        "'printFields()' method.";
+      }
       return;
     }
     std::stringstream ss;
@@ -733,15 +741,15 @@ struct ConfigInternal : public ConfigInternalVerificator {
   void printConfigInternal(const std::string& name,
                            const internal::ConfigInternal* field) const {
     meta_data_->messages->emplace_back(std::string(meta_data_->indent, ' ') +
-                                       name + ":");
+        name + ":");
     meta_data_->messages->emplace_back(field->toStringInternal(
         meta_data_->indent +
             GlobalSettings::instance().default_subconfig_indent,
         meta_data_->print_width, meta_data_->print_indent));
   }
 
-  [[nodiscard]] std::string toStringInternal(int indent, int print_width,
-                                             int print_indent) const {
+  std::string toStringInternal(int indent, int print_width,
+                               int print_indent) const {
     int print_width_prev = meta_data_->print_width;
     int print_indent_prev = meta_data_->print_indent;
     int indent_prev = meta_data_->indent;
@@ -764,14 +772,18 @@ struct ConfigInternal : public ConfigInternalVerificator {
   };
 
   void setupFromParamMap(const internal::ParamMap& params) {
+    xmlCast(params.at("_name_space"), &param_namespace_);
     meta_data_->params = &params;
     meta_data_->merged_setup_already_used = true;
     meta_data_->merged_setup_set_params = true;
+    meta_data_->merged_setup_currently_active = true;
     setupParamsAndPrinting();
+    meta_data_->merged_setup_currently_active = false;
     if (!meta_data_->merged_setup_already_used) {
       fromRosParam();
     }
     meta_data_->params = nullptr;
+    initializeDependentVariableDefaults();
   }
 
   template <typename T>
@@ -779,8 +791,10 @@ struct ConfigInternal : public ConfigInternalVerificator {
     CHECK_NOTNULL(param);
     // Check scope and param map are valid.
     if (!meta_data_->params) {
-      LOG(WARNING) << "'rosParam()' calls are only allowed within the "
-                      "'fromRosParam()' method, no param will be loaded.";
+      if (!meta_data_->merged_setup_currently_active) {
+        LOG(WARNING) << "'rosParam()' calls are only allowed within the "
+                        "'fromRosParam()' method, no param will be loaded.";
+      }
       return;
     }
     // Check the param is set.
@@ -801,8 +815,10 @@ struct ConfigInternal : public ConfigInternalVerificator {
     CHECK_NOTNULL(param);
     // Check scope and param map are valid.
     if (!meta_data_->params) {
-      LOG(WARNING) << "'rosParam()' calls are only allowed within the "
-                      "'fromRosParam()' method, no param will be loaded.";
+      if (!meta_data_->merged_setup_currently_active) {
+        LOG(WARNING) << "'rosParam()' calls are only allowed within the "
+                        "'fromRosParam()' method, no param will be loaded.";
+      }
       return;
     }
     // Check the param is set.
@@ -892,8 +908,10 @@ struct ConfigInternal : public ConfigInternalVerificator {
     CHECK_NOTNULL(param);
     // Check scope and param map are valid.
     if (!meta_data_->params) {
-      LOG(WARNING) << "'rosParam()' calls are only allowed within the "
-                      "'fromRosParam()' method, no param will be loaded.";
+      if (!meta_data_->merged_setup_currently_active) {
+        LOG(WARNING) << "'rosParam()' calls are only allowed within the "
+                        "'fromRosParam()' method, no param will be loaded.";
+      }
       return;
     }
     // Check the param is set.
@@ -908,8 +926,10 @@ struct ConfigInternal : public ConfigInternalVerificator {
     CHECK_NOTNULL(config);
     // Check scope and param map are valid.
     if (!meta_data_->params) {
-      LOG(WARNING) << "'rosParam()' calls are only allowed within the "
-                      "'fromRosParam()' method, no param will be loaded.";
+      if (!meta_data_->merged_setup_currently_active) {
+        LOG(WARNING) << "'rosParam()' calls are only allowed within the "
+                        "'fromRosParam()' method, no param will be loaded.";
+      }
       return;
     }
     // Get all params of the sub_namespace.
@@ -931,13 +951,14 @@ struct ConfigInternal : public ConfigInternalVerificator {
   std::string rosParamNameSpace() {
     // Check scope and param map are valid.
     if (!meta_data_->params) {
-      LOG(WARNING) << "'rosParamNameSpace()' calls are only allowed within the "
-                      "'fromRosParam()' method, no param will be loaded.";
-      return "";
+      if (!meta_data_->merged_setup_currently_active) {
+        LOG(WARNING)
+            << "'rosParamNameSpace()' calls are only allowed within the "
+               "'fromRosParam()' method, no param will be loaded.";
+      }
+      return param_namespace_;
     }
-    std::string ns;
-    rosParamInternal("_name_space", &ns);
-    return ns;
+    return param_namespace_;
   }
 
 #ifdef CONFIG_UTILITIES_TRANSFORMATION_ENABLED
@@ -947,8 +968,10 @@ struct ConfigInternal : public ConfigInternalVerificator {
     CHECK_NOTNULL(param);
     // Check scope and param map are valid.
     if (!meta_data_->params) {
-      LOG(WARNING) << "'rosParam()' calls are only allowed within the "
-                      "'fromRosParam()' method, no param will be loaded.";
+      if (!meta_data_->merged_setup_currently_active) {
+        LOG(WARNING) << "'rosParam()' calls are only allowed within the "
+                        "'fromRosParam()' method, no param will be loaded.";
+      }
       return;
     }
     // Check the param is set.
@@ -1029,6 +1052,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     bool print_warnings = false;
     bool merged_setup_already_used = false;
     bool merged_setup_set_params = false;
+    bool merged_setup_currently_active = false;
 
     MetaData() = default;
     MetaData(const MetaData& other) {
@@ -1039,6 +1063,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
   };
 
   std::string name_;
+  std::string param_namespace_ = "~";
   std::unique_ptr<MetaData> meta_data_;
 };
 
