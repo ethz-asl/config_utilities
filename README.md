@@ -89,11 +89,10 @@ Using config_utilities-based configs has the following advantages:
 Briefly describes the interfaces available and how to use them.
 
 ### Settings
-Set default settings for the entire project. Set these before instantiation of a config.
+Set default settings for the entire project. Set these before instantiating a config.
 ```c++
 config_utilities::GlobalSettings().default_print_width = 80;
 config_utilities::GlobalSettings().default_print_indent = 30;
-...
 ```
 ### Configs
 Define configs by inheriting from the provided `config_utilities::Config` and templating itself. 
@@ -199,13 +198,11 @@ static config_utilities::Factory::Registration<BaseT, DerivedT, ConstructorArgs.
 // Register a class that has a Config struct as a member to enable ROS creation.
 static config_utilities::Factory::RegistrationRos<BaseT, DerivedT, ConstructorArgs...> registration("IdentifierString");
 // Create any class registered to the factory.
-std::unique_ptr<DerivedT> config_utilities::Factory::create<BaseT>("IdentifierString", constructor_args);
+std::unique_ptr<BaseT> config_utilities::Factory::create<BaseT>("IdentifierString", constructor_args);
 // Create a that uses a Config from ros params. The param 'type' is expected to provide the identifier string.
 // The constructors of each DerivedT is expected to take as first argument a DerivedT::Config.
-std::unique_ptr<DerivedT> config_utilities::FactoryRos::create<BaseT>(const ros::NodeHandle& nh, constructor_args);
-
+std::unique_ptr<BaseT> config_utilities::FactoryRos::create<BaseT>(const ros::NodeHandle& nh, constructor_args);
 ```
-
 
  
 # Demos
