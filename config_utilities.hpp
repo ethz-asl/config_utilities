@@ -2,7 +2,7 @@
 AUTHOR:       Lukas Schmid <schmluk@mavt.ethz.ch>
 AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
 SOURCE:       https://github.com/ethz-asl/config_utilities
-VERSION:      1.0.2
+VERSION:      1.0.3
 LICENSE:      BSD-3-Clause
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
@@ -34,7 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 // Raise a redefined warning if different versions are used. v=MMmmPP.
-#define CONFIG_UTILITIES_VERSION 010002
+#define CONFIG_UTILITIES_VERSION 010003
 
 /**
  * Depending on which headers are available, ROS dependencies are included in
@@ -1106,6 +1106,33 @@ struct Config : public internal::ConfigInternal {
     return *static_cast<ConfigT*>(this);
   }
 };
+
+/**
+ * ==================== Factory ====================
+ */
+class Factory {
+ public:
+  // Registration.
+
+  // Creation.
+  template<class Base, typename... Args>
+  static std::shared_ptr<Base> create(Args... ) {
+
+  }
+
+ private:
+  template<class Base>
+  struct ModuleMap {
+    // Factory method.
+    template<class Derived, typename... Args>
+    Base* createDerived(Args... args) { return new Derived(args...); }
+
+    // Name method map.
+    std::unordered_map<std::string, Base*(*)()
+
+  };
+};
+
 }  // namespace config_utilities
 #endif  // CONFIG_UTILITIES_CORE_HPP_
 

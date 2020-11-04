@@ -26,6 +26,10 @@ cs_add_executable(demo_inheritance
         demo_inheritance.cpp
         )
 
+cs_add_executable(demo_factory
+        demo_factory.cpp
+        )
+
 ##########
 # Export #
 ##########
