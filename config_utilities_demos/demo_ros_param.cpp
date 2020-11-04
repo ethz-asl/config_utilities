@@ -29,6 +29,14 @@ struct Config : public config_utilities::Config<Config> {
   Transformation T;
   std::string ns;
 
+  // Optional other fields can be set in the constructor.
+  Config() {
+    setConfigName("Config (from ROS params)");
+    setPrintWidth(60);
+    setPrintIndent(15);
+  }
+
+ protected:
   // Define the parameter names to read from ROS param server.
   void fromRosParam() override {
     rosParam("a", &a);
@@ -56,13 +64,6 @@ struct Config : public config_utilities::Config<Config> {
     printField("map", map);
     printField("T", T);  // This is enabled due to minkindr include.
     printField("namespace", ns);
-  }
-
-  // Optional other fields can be set in the constructor.
-  Config() {
-    setConfigName("Config (from ROS params)");
-    setPrintWidth(60);
-    setPrintIndent(15);
   }
 };
 

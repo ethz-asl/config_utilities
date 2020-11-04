@@ -3,7 +3,7 @@ Utility tools to make working with config structs for (ROS) C++ libraries more u
 
 * **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
-* **Version:** 1.0.1
+* **Version:** 1.0.2
 * **License:** BSD-3-Clause.
 
 ### Table of contents
@@ -111,7 +111,7 @@ Override these functions to implement the corresponding behavior.
   virtual void checkParams() const;  // Param validity checks.
   virtual void printFields() const;  // Printing behavior.
   virtual void fromRosParam();  // ROS-creation behavior.
-  virtual void setupParamsAndPrinting();  // Combines fromRosParam() and printFields() in a single call. Precedes these functions if implemented. 
+  virtual void setupParamsAndPrinting();  // Combines fromRosParam() and printFields() in a single call. Precedes but does not exclude these functions if implemented. 
 ```
 
 #### Protected Member Functions
