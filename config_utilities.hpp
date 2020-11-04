@@ -62,6 +62,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <algorithm>
 #include <cstring>
+#include <functional>
 #include <iomanip>
 #include <map>
 #include <memory>
@@ -71,7 +72,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <typeinfo>
 #include <unordered_map>
 #include <utility>
-#include <functional>
 
 #include <glog/logging.h>
 #include <xmlrpcpp/XmlRpcValue.h>
@@ -143,7 +143,7 @@ class RequiredArguments {
     for (int i = old_args.size(); i < *argc; ++i) {
       argv_aux_[i].reset(
           new char[std::strlen(added_args[i - old_args.size()].c_str()) +
-              1]);  // Extra char for null-terminated string.
+                   1]);  // Extra char for null-terminated string.
       strcpy(argv_aux_[i].get(), added_args[i - old_args.size()].c_str());
     }
 
@@ -341,7 +341,7 @@ class ConfigChecker {
  public:
   explicit ConfigChecker(std::string module_name)
       : name_(std::move(module_name)),
-        print_width_(GlobalSettings().default_print_width){}
+        print_width_(GlobalSettings().default_print_width) {}
 
   bool isValid(bool print_warnings = false) const {
     if (warnings_.empty()) {
@@ -745,7 +745,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
   void printConfigInternal(const std::string& name,
                            const internal::ConfigInternal* field) const {
     meta_data_->messages->emplace_back(std::string(meta_data_->indent, ' ') +
-        name + ":");
+                                       name + ":");
     meta_data_->messages->emplace_back(field->toStringInternal(
         meta_data_->indent +
             GlobalSettings::instance().default_subconfig_indent,
@@ -1121,34 +1121,39 @@ struct Config : public internal::ConfigInternal {
 class Factory {
  public:
   // Registration.
-  template<class BaseT, class DerivedT, typename... Args>
+  template <class BaseT, class DerivedT, typename... Args>
   struct Registration {
     explicit Registration(const std::string& type) {
       ModuleMap<BaseT, Args...>::instance().template addEntry<DerivedT>(type);
     }
   };
 
-  template<class BaseT, class DerivedT, typename... Args>
+  template <class BaseT, class DerivedT, typename... Args>
   struct RegistrationRos {
     explicit RegistrationRos(const std::string& type) {
-      ModuleMap<BaseT, Args...>::instance().template addEntryRos<DerivedT>(type);
+      ModuleMap<BaseT, Args...>::instance().template addEntryRos<DerivedT>(
+          type);
     }
   };
 
   // Creation.
-  template<class BaseT, typename... Args>
+  template <class BaseT, typename... Args>
   static std::unique_ptr<BaseT> create(const std::string& type, Args... args) {
     ModuleMap<BaseT, Args...>& module = ModuleMap<BaseT, Args...>::instance();
     std::stringstream ss;
-    ((ss <<typeid(args).name() << ", "), ...);
+    ((ss << typeid(args).name() << ", "), ...);
     std::string type_info = ss.str();
     if (!type_info.empty()) {
-      type_info = " and constructor arguments '" + type_info.substr(0, type_info.size()-2) + "'";
+      type_info = " and constructor arguments '" +
+                  type_info.substr(0, type_info.size() - 2) + "'";
     } else {
       type_info = "";
     }
     if (module.map.empty()) {
-      LOG(ERROR) << "Cannot create a module of type '" << type << "': No modules registered to the factory for base '" << typeid(BaseT).name() << "'" << type_info << ". Register modules using a static Registration struct.";
+      LOG(ERROR) << "Cannot create a module of type '" << type
+                 << "': No modules registered to the factory for base '"
+                 << typeid(BaseT).name() << "'" << type_info
+                 << ". Register modules using a static Registration struct.";
       return nullptr;
     }
     auto it = module.map.find(type);
@@ -1157,19 +1162,23 @@ class Factory {
       for (const auto& entry : module.map) {
         module_list.append(entry.first + ", ");
       }
-      module_list = module_list.substr(0, module_list.size()-2);
-      LOG(ERROR) << "No module of type '" << type << "' registered to the factory for base '" << typeid(BaseT).name() << "'" << type_info << ". Registered are: " << module_list << ".";
+      module_list = module_list.substr(0, module_list.size() - 2);
+      LOG(ERROR) << "No module of type '" << type
+                 << "' registered to the factory for base '"
+                 << typeid(BaseT).name() << "'" << type_info
+                 << ". Registered are: " << module_list << ".";
       return nullptr;
     }
     return std::unique_ptr<BaseT>(it->second(args...));
   }
 
  protected:
-  template<class BaseT, typename... Args>
+  template <class BaseT, typename... Args>
   struct ModuleMap {
    public:
-    using FactoryMethod = std::function<BaseT *(Args... args)>;
-    using FactoryMethodRos = std::function<BaseT *(const internal::ParamMap& params, Args... args)>;
+    using FactoryMethod = std::function<BaseT*(Args... args)>;
+    using FactoryMethodRos =
+        std::function<BaseT*(const internal::ParamMap& params, Args... args)>;
 
     // Singleton access.
     static ModuleMap& instance() {
@@ -1178,29 +1187,36 @@ class Factory {
     }
 
     // Add entries.
-    template<class DerivedT>
+    template <class DerivedT>
     void addEntry(const std::string& type) {
       if (map.find(type) != map.end()) {
-        LOG(ERROR) << "Cannot register already existent type '" << type << "' for <DerivedT>='" << typeid(DerivedT).name() << "' to factory for base '" << typeid(BaseT).name() << "'.";
+        LOG(ERROR) << "Cannot register already existent type '" << type
+                   << "' for <DerivedT>='" << typeid(DerivedT).name()
+                   << "' to factory for base '" << typeid(BaseT).name() << "'.";
       } else {
-        map.insert(std::make_pair(            type,            [](Args... args) { return new DerivedT(args...); }));
+        map.insert(std::make_pair(
+            type, [](Args... args) { return new DerivedT(args...); }));
       }
     }
 
-    template<class DerivedT>
+    template <class DerivedT>
     void addEntryRos(const std::string& type) {
       if (map_ros.find(type) != map_ros.end()) {
-        LOG(ERROR) << "Cannot register already existent type '" << type << "' for <DerivedT>='" << typeid(DerivedT).name() << "' to factory for base '" << typeid(BaseT).name() << "'.";
+        LOG(ERROR) << "Cannot register already existent type '" << type
+                   << "' for <DerivedT>='" << typeid(DerivedT).name()
+                   << "' to factory for base '" << typeid(BaseT).name() << "'.";
       } else {
         map_ros.insert(std::make_pair(
             type,
-            [type](const internal::ParamMap& params, Args... args)->BaseT* {
+            [type](const internal::ParamMap& params, Args... args) -> BaseT* {
               typename DerivedT::Config config;
-              auto config_ptr = dynamic_cast<Config<typename DerivedT::Config>*>(&config);
+              auto config_ptr =
+                  dynamic_cast<Config<typename DerivedT::Config>*>(&config);
               if (!config_ptr) {
                 LOG(ERROR) << "Cannot create '" << type << "' with <DerivedT>='"
                            << typeid(DerivedT).name()
-                           << "': 'DerivedT::Config' needs to inherit from 'config_utilities::Config<DerivedT::Config>'.";
+                           << "': 'DerivedT::Config' needs to inherit from "
+                              "'config_utilities::Config<DerivedT::Config>'.";
                 return nullptr;
               }
               internal::setupConfigFromParamMap(params, config_ptr);
@@ -1281,14 +1297,16 @@ ConfigT getConfigFromRos(const ros::NodeHandle& nh) {
 class FactoryRos : protected Factory {
  public:
   // Creation.
-  template<class BaseT, typename... Args>
-  static std::unique_ptr<BaseT> create(const ros::NodeHandle& nh, Args... args) {
+  template <class BaseT, typename... Args>
+  static std::unique_ptr<BaseT> create(const ros::NodeHandle& nh,
+                                       Args... args) {
     ModuleMap<BaseT, Args...>& module = ModuleMap<BaseT, Args...>::instance();
     std::stringstream ss;
-    ((ss <<typeid(args).name() << ", "), ...);
+    ((ss << typeid(args).name() << ", "), ...);
     std::string type_info = ss.str();
     if (!type_info.empty()) {
-      type_info = " and constructor arguments '" + type_info.substr(0, type_info.size()-2) + "'";
+      type_info = " and constructor arguments '" +
+                  type_info.substr(0, type_info.size() - 2) + "'";
     } else {
       type_info = "";
     }
@@ -1296,13 +1314,18 @@ class FactoryRos : protected Factory {
     // Get the type from param.
     std::string type;
     if (!nh.hasParam("type")) {
-      LOG(ERROR) << "ROS factory creation requires the param 'type' to be set in namespace '" << nh.getNamespace()<< "'.";
+      LOG(ERROR) << "ROS factory creation requires the param 'type' to be set "
+                    "in namespace '"
+                 << nh.getNamespace() << "'.";
       return nullptr;
     }
     nh.getParam("type", type);
 
     if (module.map_ros.empty()) {
-      LOG(ERROR) << "Cannot create a module of type '" << type << "': No modules registered to the factory for base '" << typeid(BaseT).name() << "'" << type_info << ". Register modules using a static Registration struct.";
+      LOG(ERROR) << "Cannot create a module of type '" << type
+                 << "': No modules registered to the factory for base '"
+                 << typeid(BaseT).name() << "'" << type_info
+                 << ". Register modules using a static Registration struct.";
       return nullptr;
     }
     auto it = module.map_ros.find(type);
@@ -1311,8 +1334,11 @@ class FactoryRos : protected Factory {
       for (const auto& entry : module.map_ros) {
         module_list.append(entry.first + ", ");
       }
-      module_list = module_list.substr(0, module_list.size()-2);
-      LOG(ERROR) << "No module of type '" << type << "' registered to the factory for base '" << typeid(BaseT).name() << "'" << type_info << ". Registered are: " << module_list << ".";
+      module_list = module_list.substr(0, module_list.size() - 2);
+      LOG(ERROR) << "No module of type '" << type
+                 << "' registered to the factory for base '"
+                 << typeid(BaseT).name() << "'" << type_info
+                 << ". Registered are: " << module_list << ".";
       return nullptr;
     }
 

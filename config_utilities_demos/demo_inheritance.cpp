@@ -116,7 +116,7 @@ class MyDerived : public MyBase {
   explicit MyDerived(const Config& config)
       : MyBase(config.base_config), config_(config.checkValid()) {}
 
-  void printConfig() const {std::cout << config_.toString() << std::endl; }
+  void printConfig() const { std::cout << config_.toString() << std::endl; }
 
  private:
   const Config config_;

@@ -36,25 +36,29 @@ class DerivedA : public Base {
 
   // The constructor that is registered to the factory is required to take the
   // config as the first argument.
-  DerivedA(const Config& config, const std::string& info) : config_(config.checkValid()), info_(info) {}
+  DerivedA(const Config& config, const std::string& info)
+      : config_(config.checkValid()), info_(info) {}
 
   void print() override {
-    std::cout << "This is a DerivedA with i=" << config_.i << ", f="<< config_.f << ", and info '" << info_ << "'." <<std::endl;
+    std::cout << "This is a DerivedA with i=" << config_.i
+              << ", f=" << config_.f << ", and info '" << info_ << "'."
+              << std::endl;
   }
 
  private:
   const Config config_;
   const std::string info_;
 
-  // Register to the factory using the 'RegistrationRos' struct. Notice that the config does not need to
-  // be specified, the order of template arguments is the Base, itself, followed
-  // by all constructor arguments.  Multiple registrations can be used to
-  // register different constructors if necessary.
-  static config_utilities::Factory::RegistrationRos<Base, DerivedA, std::string> registration;
+  // Register to the factory using the 'RegistrationRos' struct. Notice that the
+  // config does not need to be specified, the order of template arguments is
+  // the Base, itself, followed by all constructor arguments.  Multiple
+  // registrations can be used to register different constructors if necessary.
+  static config_utilities::Factory::RegistrationRos<Base, DerivedA, std::string>
+      registration;
 };
 
-config_utilities::Factory::RegistrationRos<Base, DerivedA, std::string> DerivedA::registration("DerivedA") ;
-
+config_utilities::Factory::RegistrationRos<Base, DerivedA, std::string>
+    DerivedA::registration("DerivedA");
 
 // Similarly, a seond derived class using completely different config and
 // printing is implemented.
@@ -64,9 +68,7 @@ class DerivedB : public Base {
     std::string s = "default text";
     float f = 0.f;
 
-    Config() {
-      setConfigName("DerivedB Config");
-    }
+    Config() { setConfigName("DerivedB Config"); }
 
    protected:
     void setupParamsAndPrinting() override {
@@ -75,22 +77,24 @@ class DerivedB : public Base {
     }
   };
 
-  DerivedB(const Config& config, const std::string& info) : config_(config.checkValid()), info_(info) {}
+  DerivedB(const Config& config, const std::string& info)
+      : config_(config.checkValid()), info_(info) {}
 
   void print() override {
-    std::cout << "This is a DerivedB with info '" << info_ << "'.\n" << config_.toString() <<std::endl;
+    std::cout << "This is a DerivedB with info '" << info_ << "'.\n"
+              << config_.toString() << std::endl;
   }
 
  private:
   const Config config_;
   const std::string info_;
 
-  static config_utilities::Factory::RegistrationRos<Base, DerivedB, std::string> registration;
+  static config_utilities::Factory::RegistrationRos<Base, DerivedB, std::string>
+      registration;
 };
 
-config_utilities::Factory::RegistrationRos<Base, DerivedB, std::string> DerivedB::registration("DerivedB") ;
-
-
+config_utilities::Factory::RegistrationRos<Base, DerivedB, std::string>
+    DerivedB::registration("DerivedB");
 
 int main(int argc, char** argv) {
   // Setup Logging.
@@ -111,7 +115,8 @@ int main(int argc, char** argv) {
 
   // Create the object specified in the param server using the ros factory.
   std::string info = "How to create a DerivedA";
-  std::unique_ptr<Base> object = config_utilities::FactoryRos::create<Base>(nh_private, info);
+  std::unique_ptr<Base> object =
+      config_utilities::FactoryRos::create<Base>(nh_private, info);
   object->print();
 
   // If the 'type' param was different another object would be created.

@@ -10,7 +10,6 @@
 // i.e. getConfigFromRos(), are enabled.
 #include <ros/node_handle.h>
 
-
 #include "../config_utilities.hpp"
 
 // Define a common base class.
@@ -22,8 +21,8 @@ class Base {
   virtual void print() = 0;
 
  protected:
-  int i_=0;
-  float f_=0.f;
+  int i_ = 0;
+  float f_ = 0.f;
 };
 
 // Define a derived classes.
@@ -33,7 +32,8 @@ class DerivedA : public Base {
   DerivedA() = default;
 
   void print() override {
-    std::cout << "This is a DerivedA with i=" << i_ << ", f="<< f_ << "."<<std::endl;
+    std::cout << "This is a DerivedA with i=" << i_ << ", f=" << f_ << "."
+              << std::endl;
   }
 
  private:
@@ -41,17 +41,19 @@ class DerivedA : public Base {
   // The registration is templated on the Base, itself, followed by all
   // constructor arguments. Multiple registrations can be used to register
   // different constructors if necessary.
-  static config_utilities::Factory::Registration<Base, DerivedA, int, float> registration;
-  static config_utilities::Factory::Registration<Base, DerivedA> registration_default;
-
+  static config_utilities::Factory::Registration<Base, DerivedA, int, float>
+      registration;
+  static config_utilities::Factory::Registration<Base, DerivedA>
+      registration_default;
 };
 
 // The argument to the registration constructor is the name by which classes are
 // retrieved. These are required to be unique within a set of template arguments
 // but may repeat for different template arguments.
-config_utilities::Factory::Registration<Base, DerivedA, int, float> DerivedA::registration("DerivedA") ;
-config_utilities::Factory::Registration<Base, DerivedA> DerivedA::registration_default("DerivedA") ;
-
+config_utilities::Factory::Registration<Base, DerivedA, int, float>
+    DerivedA::registration("DerivedA");
+config_utilities::Factory::Registration<Base, DerivedA>
+    DerivedA::registration_default("DerivedA");
 
 // Create a second derived class. This one without a default registration.
 class DerivedB : public Base {
@@ -60,18 +62,21 @@ class DerivedB : public Base {
   DerivedB() = default;
 
   void print() override {
-    std::cout << "This is a DerivedB with i=" << i_ << ", f="<< f_ << "." <<std::endl;
+    std::cout << "This is a DerivedB with i=" << i_ << ", f=" << f_ << "."
+              << std::endl;
   }
 
  private:
-  static config_utilities::Factory::Registration<Base, DerivedB, int, float> registration;
-  static config_utilities::Factory::Registration<Base, DerivedB> registration_default;
-
+  static config_utilities::Factory::Registration<Base, DerivedB, int, float>
+      registration;
+  static config_utilities::Factory::Registration<Base, DerivedB>
+      registration_default;
 };
 
-config_utilities::Factory::Registration<Base, DerivedB, int, float> DerivedB::registration("DerivedB") ;
-config_utilities::Factory::Registration<Base, DerivedB> DerivedB::registration_default("DerivedB");
-
+config_utilities::Factory::Registration<Base, DerivedB, int, float>
+    DerivedB::registration("DerivedB");
+config_utilities::Factory::Registration<Base, DerivedB>
+    DerivedB::registration_default("DerivedB");
 
 int main(int argc, char** argv) {
   // Setup Logging.
@@ -82,7 +87,8 @@ int main(int argc, char** argv) {
 
   // Objects can be created using the create<Base> function. The arguments are
   // required to match the templates of the registration or lookup will fail.
-  std::unique_ptr<Base> object = config_utilities::Factory::create<Base>("DerivedA");
+  std::unique_ptr<Base> object =
+      config_utilities::Factory::create<Base>("DerivedA");
   object->print();
 
   // Create a DerivedB using the specific constructor.
