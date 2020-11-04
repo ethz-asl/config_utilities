@@ -1,7 +1,6 @@
 /**
- * This demo showcases the use of config_utilities create a Config from ros
- * parameter server. This functionality is only included if ros/node_handle.h
- * is included, i.e. in a ROS library.
+ * This demo showcases the use of config_utilities factory to create varying
+ * config-independent types.
  */
 
 #include <iostream>
@@ -14,31 +13,65 @@
 
 #include "../config_utilities.hpp"
 
-// Define a config struct.
-struct Config : public config_utilities::Config<Config> {
-  int a = 0;
-  double b = 0;
-  std::string c = "default";
-  std::vector<double> vec;
-  std::map<std::string, int> map;
-  std::string ns;
+// Define a common base class.
+class Base {
+ public:
+  Base() = default;
+  Base(int i, float f) : i_(i), f_(f) {}
 
-  // Define the parameter names to read from ROS param server.
-  void setupParamsAndPrinting() override {
-    setupParam("a", &a);
-    setupParam("b", &b);
-    setupParam("c", &c);
-    setupParam("vec", &vec);
-    setupParam("map", &map);
-  }
+  virtual void print() = 0;
 
-  // Optional other fields can be set in the constructor.
-  Config() {
-    setConfigName("Config (from ROS params)");
-    setPrintWidth(60);
-    setPrintIndent(15);
-  }
+ protected:
+  int i_=0;
+  float f_=0.f;
 };
+
+// Define a derived classes.
+class DerivedA : public Base {
+ public:
+  DerivedA(int i, float f) : Base(i, f) {}
+  DerivedA() = default;
+
+  void print() override {
+    std::cout << "This is a DerivedA with i=" << i_ << ", f="<< f_ << "."<<std::endl;
+  }
+
+ private:
+  // Each derived class can register itself using a static registration struct.
+  // The registration is templated on the Base, itself, followed by all
+  // constructor arguments. Multiple registrations can be used to register
+  // different constructors if necessary.
+  static config_utilities::Factory::Registration<Base, DerivedA, int, float> registration;
+  static config_utilities::Factory::Registration<Base, DerivedA> registration_default;
+
+};
+
+// The argument to the registration constructor is the name by which classes are
+// retrieved. These are required to be unique within a set of template arguments
+// but may repeat for different template arguments.
+config_utilities::Factory::Registration<Base, DerivedA, int, float> DerivedA::registration("DerivedA") ;
+config_utilities::Factory::Registration<Base, DerivedA> DerivedA::registration_default("DerivedA") ;
+
+
+// Create a second derived class. This one without a default registration.
+class DerivedB : public Base {
+ public:
+  DerivedB(int i, float f) : Base(i, f) {}
+  DerivedB() = default;
+
+  void print() override {
+    std::cout << "This is a DerivedB with i=" << i_ << ", f="<< f_ << "." <<std::endl;
+  }
+
+ private:
+  static config_utilities::Factory::Registration<Base, DerivedB, int, float> registration;
+  static config_utilities::Factory::Registration<Base, DerivedB> registration_default;
+
+};
+
+config_utilities::Factory::Registration<Base, DerivedB, int, float> DerivedB::registration("DerivedB") ;
+config_utilities::Factory::Registration<Base, DerivedB> DerivedB::registration_default("DerivedB");
+
 
 int main(int argc, char** argv) {
   // Setup Logging.
@@ -47,24 +80,22 @@ int main(int argc, char** argv) {
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);
 
-  // Setup ros and add some params to the parameter server.
-  ros::init(argc, argv, "demo_ros_param");
-  ros::NodeHandle nh_private("~");
-  std::vector<double> vec{1.0, 2.0, 3.0};
-  std::map<std::string, int> map;
-  map["m1"] = 1;
-  map["m2"] = 2;
-  nh_private.setParam("a", 123);
-  nh_private.setParam("b", 45.6);
-  nh_private.setParam("c", "seven-eight-nine");
-  nh_private.setParam("vec", vec);
-  nh_private.setParam("map", map);
+  // Objects can be created using the create<Base> function. The arguments are
+  // required to match the templates of the registration or lookup will fail.
+  std::unique_ptr<Base> object = config_utilities::Factory::create<Base>("DerivedA");
+  object->print();
 
-  // Getting the config from ros params is a one liner.
-  Config config = config_utilities::getConfigFromRos<Config>(nh_private);
+  // Create a DerivedB using the specific constructor.
+  object = config_utilities::Factory::create<Base>("DerivedB", 1, 2.f);
+  object->print();
 
-  // Verify it worked.
-  std::cout << config.toString() << std::endl;
+  // If the lookup fails a nullptr is returned and a warning is raised.
+  object = config_utilities::Factory::create<Base>("DerivedC", 1, 2.f);
+  if (object) {
+    object->print();
+  } else {
+    std::cout << "'object' is invalid." << std::endl;
+  }
 
   return 0;
 }

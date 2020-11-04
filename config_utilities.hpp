@@ -2,7 +2,7 @@
 AUTHOR:       Lukas Schmid <schmluk@mavt.ethz.ch>
 AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
 SOURCE:       https://github.com/ethz-asl/config_utilities
-VERSION:      1.0.3
+VERSION:      1.1.1
 LICENSE:      BSD-3-Clause
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
@@ -33,8 +33,10 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <ros/node_handle.h>
+
 // Raise a redefined warning if different versions are used. v=MMmmPP.
-#define CONFIG_UTILITIES_VERSION 010003
+#define CONFIG_UTILITIES_VERSION 010101
 
 /**
  * Depending on which headers are available, ROS dependencies are included in
@@ -69,6 +71,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <typeinfo>
 #include <unordered_map>
 #include <utility>
+#include <functional>
 
 #include <glog/logging.h>
 #include <xmlrpcpp/XmlRpcValue.h>
@@ -1118,23 +1121,100 @@ struct Config : public internal::ConfigInternal {
 class Factory {
  public:
   // Registration.
+  template<class BaseT, class DerivedT, typename... Args>
+  struct Registration {
+    explicit Registration(const std::string& type) {
+      ModuleMap<BaseT, Args...>::instance().template addEntry<DerivedT>(type);
+    }
+  };
+
+  template<class BaseT, class DerivedT, typename... Args>
+  struct RegistrationRos {
+    explicit RegistrationRos(const std::string& type) {
+      ModuleMap<BaseT, Args...>::instance().template addEntryRos<DerivedT>(type);
+    }
+  };
 
   // Creation.
-  template<class Base, typename... Args>
-  static std::shared_ptr<Base> create(Args... ) {
-
+  template<class BaseT, typename... Args>
+  static std::unique_ptr<BaseT> create(const std::string& type, Args... args) {
+    ModuleMap<BaseT, Args...>& module = ModuleMap<BaseT, Args...>::instance();
+    std::stringstream ss;
+    ((ss <<typeid(args).name() << ", "), ...);
+    std::string type_info = ss.str();
+    if (!type_info.empty()) {
+      type_info = " and constructor arguments '" + type_info.substr(0, type_info.size()-2) + "'";
+    } else {
+      type_info = "";
+    }
+    if (module.map.empty()) {
+      LOG(ERROR) << "Cannot create a module of type '" << type << "': No modules registered to the factory for base '" << typeid(BaseT).name() << "'" << type_info << ". Register modules using a static Registration struct.";
+      return nullptr;
+    }
+    auto it = module.map.find(type);
+    if (it == module.map.end()) {
+      std::string module_list;
+      for (const auto& entry : module.map) {
+        module_list.append(entry.first + ", ");
+      }
+      module_list = module_list.substr(0, module_list.size()-2);
+      LOG(ERROR) << "No module of type '" << type << "' registered to the factory for base '" << typeid(BaseT).name() << "'" << type_info << ". Registered are: " << module_list << ".";
+      return nullptr;
+    }
+    return std::unique_ptr<BaseT>(it->second(args...));
   }
 
- private:
-  template<class Base>
+ protected:
+  template<class BaseT, typename... Args>
   struct ModuleMap {
-    // Factory method.
-    template<class Derived, typename... Args>
-    Base* createDerived(Args... args) { return new Derived(args...); }
+   public:
+    using FactoryMethod = std::function<BaseT *(Args... args)>;
+    using FactoryMethodRos = std::function<BaseT *(const internal::ParamMap& params, Args... args)>;
 
-    // Name method map.
-    std::unordered_map<std::string, Base*(*)()
+    // Singleton access.
+    static ModuleMap& instance() {
+      static ModuleMap instance_;
+      return instance_;
+    }
 
+    // Add entries.
+    template<class DerivedT>
+    void addEntry(const std::string& type) {
+      if (map.find(type) != map.end()) {
+        LOG(ERROR) << "Cannot register already existent type '" << type << "' for <DerivedT>='" << typeid(DerivedT).name() << "' to factory for base '" << typeid(BaseT).name() << "'.";
+      } else {
+        map.insert(std::make_pair(            type,            [](Args... args) { return new DerivedT(args...); }));
+      }
+    }
+
+    template<class DerivedT>
+    void addEntryRos(const std::string& type) {
+      if (map_ros.find(type) != map_ros.end()) {
+        LOG(ERROR) << "Cannot register already existent type '" << type << "' for <DerivedT>='" << typeid(DerivedT).name() << "' to factory for base '" << typeid(BaseT).name() << "'.";
+      } else {
+        map_ros.insert(std::make_pair(
+            type,
+            [type](const internal::ParamMap& params, Args... args)->BaseT* {
+              typename DerivedT::Config config;
+              auto config_ptr = dynamic_cast<Config<typename DerivedT::Config>*>(&config);
+              if (!config_ptr) {
+                LOG(ERROR) << "Cannot create '" << type << "' with <DerivedT>='"
+                           << typeid(DerivedT).name()
+                           << "': 'DerivedT::Config' needs to inherit from 'config_utilities::Config<DerivedT::Config>'.";
+                return nullptr;
+              }
+              internal::setupConfigFromParamMap(params, config_ptr);
+              return new DerivedT(config, args...);
+            }));
+      }
+    }
+
+    // The maps.
+    std::unordered_map<std::string, FactoryMethod> map;
+    std::unordered_map<std::string, FactoryMethodRos> map_ros;
+
+   private:
+    ModuleMap() = default;
   };
 };
 
@@ -1149,27 +1229,8 @@ class Factory {
 #define CONFIG_UTILITIES_ROS_HPP_
 namespace config_utilities {
 
-// Tool to create configs from ROS
-template <typename ConfigT>
-ConfigT getConfigFromRos(const ros::NodeHandle& nh) {
-  ConfigT config;
-  if (!internal::isConfig(&config)) {
-    LOG(ERROR) << "Can not 'getConfigFromRos()' for <ConfigT>='"
-               << typeid(ConfigT).name()
-               << "' that does not inherit from "
-                  "'config_utilities::Config<ConfigT>'.";
-    return config;
-  }
-  auto config_ptr = dynamic_cast<Config<ConfigT>*>(&config);
-  if (!config_ptr) {
-    LOG(ERROR) << "Can not 'getConfigFromRos()' for <ConfigT>='"
-               << typeid(ConfigT).name()
-               << "' that does not inherit from "
-                  "'config_utilities::Config<ConfigT>'.";
-    return config;
-  }
-
-  // Get params.
+namespace internal {
+ParamMap getParamMapFromRos(const ros::NodeHandle& nh) {
   internal::ParamMap params;
   std::vector<std::string> keys;
   XmlRpc::XmlRpcValue value;
@@ -1184,11 +1245,83 @@ ConfigT getConfigFromRos(const ros::NodeHandle& nh) {
     params[key] = value;
   }
   params["_name_space"] = ns;
+  return params;
+}
+}  // namespace internal
+
+// Tool to create configs from ROS
+template <typename ConfigT>
+ConfigT getConfigFromRos(const ros::NodeHandle& nh) {
+  ConfigT config;
+  if (!internal::isConfig(&config)) {
+    LOG(ERROR) << "Cannot 'getConfigFromRos()' for <ConfigT>='"
+               << typeid(ConfigT).name()
+               << "' that does not inherit from "
+                  "'config_utilities::Config<ConfigT>'.";
+    return config;
+  }
+  auto config_ptr = dynamic_cast<Config<ConfigT>*>(&config);
+  if (!config_ptr) {
+    LOG(ERROR) << "Cannot 'getConfigFromRos()' for <ConfigT>='"
+               << typeid(ConfigT).name()
+               << "' that does not inherit from "
+                  "'config_utilities::Config<ConfigT>'.";
+    return config;
+  }
 
   // Setup.
+  internal::ParamMap params = internal::getParamMapFromRos(nh);
   internal::setupConfigFromParamMap(params, config_ptr);
   return config;
 }
+/**
+ * ==================== ROS Factory ====================
+ */
+
+class FactoryRos : protected Factory {
+ public:
+  // Creation.
+  template<class BaseT, typename... Args>
+  static std::unique_ptr<BaseT> create(const ros::NodeHandle& nh, Args... args) {
+    ModuleMap<BaseT, Args...>& module = ModuleMap<BaseT, Args...>::instance();
+    std::stringstream ss;
+    ((ss <<typeid(args).name() << ", "), ...);
+    std::string type_info = ss.str();
+    if (!type_info.empty()) {
+      type_info = " and constructor arguments '" + type_info.substr(0, type_info.size()-2) + "'";
+    } else {
+      type_info = "";
+    }
+
+    // Get the type from param.
+    std::string type;
+    if (!nh.hasParam("type")) {
+      LOG(ERROR) << "ROS factory creation requires the param 'type' to be set in namespace '" << nh.getNamespace()<< "'.";
+      return nullptr;
+    }
+    nh.getParam("type", type);
+
+    if (module.map_ros.empty()) {
+      LOG(ERROR) << "Cannot create a module of type '" << type << "': No modules registered to the factory for base '" << typeid(BaseT).name() << "'" << type_info << ". Register modules using a static Registration struct.";
+      return nullptr;
+    }
+    auto it = module.map_ros.find(type);
+    if (it == module.map_ros.end()) {
+      std::string module_list;
+      for (const auto& entry : module.map_ros) {
+        module_list.append(entry.first + ", ");
+      }
+      module_list = module_list.substr(0, module_list.size()-2);
+      LOG(ERROR) << "No module of type '" << type << "' registered to the factory for base '" << typeid(BaseT).name() << "'" << type_info << ". Registered are: " << module_list << ".";
+      return nullptr;
+    }
+
+    // Get the config and create the target.
+    internal::ParamMap params = internal::getParamMapFromRos(nh);
+    return std::unique_ptr<BaseT>(it->second(params, args...));
+  }
+};
+
 }  // namespace config_utilities
 #endif  // CONFIG_UTILITIES_ROS_HPP_
 #endif  // CONFIG_UTILITIES_ROS_ENABLED

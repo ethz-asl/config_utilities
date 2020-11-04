@@ -128,7 +128,6 @@ int main(int argc, char** argv) {
       &argc, &argv, {"--logtostderr", "--colorlogtostderr"});
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);
-  google::InstallFailureSignalHandler();
 
   // General settings for all configs that are created after this statement.
   config_utilities::GlobalSettings().default_print_width = 60;

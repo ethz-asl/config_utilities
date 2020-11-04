@@ -3,7 +3,7 @@ Utility tools to make working with config structs for (ROS) C++ libraries more u
 
 * **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
-* **Version:** 1.0.2
+* **Version:** 1.1.1
 * **License:** BSD-3-Clause.
 
 ### Table of contents
@@ -15,6 +15,9 @@ Utility tools to make working with config structs for (ROS) C++ libraries more u
   * [config](#Config)
   * [ros_param](#ROS-Params)
   * [inheritance](#Inheritance)
+  * [factory](#factory)
+  * [ros_factory](#ROS-Factory)
+
   
 # Why config_utilities
 This library was developed to make working with config structs for object-oriented C++ libraries as simple as possible.
@@ -40,6 +43,11 @@ Using config_utilities-based configs has the following advantages:
   ```
 * Everything related to a config is located at its definition/implementation, making all its properties clear and easy to change.
   No need for additional code in other files where changes could be overlooked.
+* Easy registration and factory creation for arbitrary classes:
+  ```c++
+  std::shared_ptr<Base> object = config_utilities::Factory::create<Base>("MyDerived");
+  
+  ```
 
 # Installation
 * **Header-Only**
@@ -80,14 +88,14 @@ Using config_utilities-based configs has the following advantages:
 # Interfaces and Tools
 Briefly describes the interfaces available and how to use them.
 
-#### Settings
+### Settings
 Set default settings for the entire project. Set these before instantiation of a config.
 ```c++
 config_utilities::GlobalSettings().default_print_width = 80;
 config_utilities::GlobalSettings().default_print_indent = 30;
 ...
 ```
-#### Configs
+### Configs
 Define configs by inheriting from the provided `config_utilities::Config` and templating itself. 
 All following interfaces are part of such a `Config`.
 ```c++
@@ -182,6 +190,23 @@ MyConfig::setupParamsAndPrinting() {
   ...
 }
 ```
+
+### Factory
+Use these tools to let derived classes register themselves to the factory and create them based on a string or from the ROS parameter server.
+```c++
+// Register any class to the factory using a static struct.
+static config_utilities::Factory::Registration<BaseT, DerivedT, ConstructorArgs...> registration("IdentifierString");
+// Register a class that has a Config struct as a member to enable ROS creation.
+static config_utilities::Factory::RegistrationRos<BaseT, DerivedT, ConstructorArgs...> registration("IdentifierString");
+// Create any class registered to the factory.
+std::unique_ptr<DerivedT> config_utilities::Factory::create<BaseT>("IdentifierString", constructor_args);
+// Create a that uses a Config from ros params. The param 'type' is expected to provide the identifier string.
+// The constructors of each DerivedT is expected to take as first argument a DerivedT::Config.
+std::unique_ptr<DerivedT> config_utilities::FactoryRos::create<BaseT>(const ros::NodeHandle& nh, constructor_args);
+
+```
+
+
  
 # Demos
 Verbose examples of the most important functionalities are given in the config_utilities_demos package.
@@ -276,3 +301,32 @@ Warning: Member config 'OtherConfig' is not valid.
 Warning: Member config 'MyBase' is not valid.
 ============================================================
 ``` 
+## Factory
+This demo describes how to use the `config_utilities::Factory::Registration()` and `config_utilities::Factory::create()` tools to instantiate various objects.
+```sh
+rosrun config_utilities_demos demo_factory
+```
+Defines two derived classes and registers them statically to the factory.
+```
+This is a DerivedA with i=0, f=0.
+This is a DerivedB with i=1, f=2.
+E1104 20:45:29.080973  6629 config_utilities.hpp:1152] No module with name 'DerivedC' registered to the factory for base '4Base' and constructor arguments 'i, f'. Registered are: DerivedB, DerivedA.
+'object' is invalid.
+```
+
+## ROS Factory
+This demo describes how to use the `config_utilities::Factory::RegistrationRos()` and `config_utilities::FactoryRos::create()` tools to create different objects that use varying custom configs from the parameter server.
+```sh
+roscore & rosrun config_utilities_demos demo_ros_factory
+```
+
+Defines two derived classes that use different configs and creates them from Ros.
+
+```
+This is a DerivedA with i=1, f=2.345, and info 'How to create a DerivedA'.
+This is a DerivedB with info 'Now the type param has changed'.
+=============================== DerivedB Config ================================
+s:                            param text.
+f:                            2.345
+================================================================================
+```
