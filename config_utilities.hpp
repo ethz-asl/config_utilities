@@ -472,15 +472,13 @@ struct ConfigInternal : public ConfigInternalVerificator {
     return result;
   }
 
-      [[nodiscard]] std::string toString() const {
+  std::string toString() const {
     meta_data_->messages = std::make_unique<std::vector<std::string>>();
     meta_data_->merged_setup_already_used = true;
     meta_data_->merged_setup_set_params = false;
     // NOTE: setupParamsAndPrinting() does not modify 'this' in printing mode.
     ((ConfigInternal*)this)->setupParamsAndPrinting();
-    if (!meta_data_->merged_setup_already_used) {
-      printFields();
-    }
+    printFields();
     std::string result =
         internal::printCenter(name_, meta_data_->print_width, '=');
     for (const std::string& msg : *(meta_data_->messages)) {
@@ -497,14 +495,18 @@ struct ConfigInternal : public ConfigInternalVerificator {
   virtual void checkParams() const {}
 
   virtual void printFields() const {
-    meta_data_->messages->emplace_back(
-        std::string(meta_data_->indent, ' ')
-            .append("The 'printFields()' method is not implemented."));
+    if (!meta_data_->merged_setup_already_used) {
+      meta_data_->messages->emplace_back(
+          std::string(meta_data_->indent, ' ')
+              .append("The 'printFields()' method is not implemented."));
+    }
   }
 
   virtual void fromRosParam() {
-    LOG(WARNING) << "fromRosParam() is not implemented for '" << name_
-                 << "', no parameters will be loaded.";
+    if (!meta_data_->merged_setup_already_used) {
+      LOG(WARNING) << "fromRosParam() is not implemented for '" << name_
+                   << "', no parameters will be loaded.";
+    }
   }
 
   virtual void setupParamsAndPrinting() {
@@ -740,7 +742,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
         meta_data_->print_width, meta_data_->print_indent));
   }
 
-  [[nodiscard]] std::string toStringInternal(int indent, int print_width,
+  std::string toStringInternal(int indent, int print_width,
                                              int print_indent) const {
     int print_width_prev = meta_data_->print_width;
     int print_indent_prev = meta_data_->print_indent;
@@ -750,12 +752,18 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->indent = indent;
 
     meta_data_->messages = std::make_unique<std::vector<std::string>>();
+    meta_data_->merged_setup_already_used = true;
+    meta_data_->merged_setup_set_params = false;
+    // NOTE: setupParamsAndPrinting() does not modify 'this' in printing mode.
+    ((ConfigInternal*)this)->setupParamsAndPrinting();
     printFields();
     std::string result;
     for (const std::string& msg : *(meta_data_->messages)) {
       result.append("\n" + msg);
     }
-    result = result.substr(1);
+    if (!result.empty()) {
+      result = result.substr(1);
+    }
     meta_data_->messages.reset(nullptr);
     meta_data_->print_width = print_width_prev;
     meta_data_->print_indent = print_indent_prev;
@@ -768,9 +776,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->merged_setup_already_used = true;
     meta_data_->merged_setup_set_params = true;
     setupParamsAndPrinting();
-    if (!meta_data_->merged_setup_already_used) {
-      fromRosParam();
-    }
+    fromRosParam();
     meta_data_->params = nullptr;
     initializeDependentVariableDefaults();
   }
@@ -813,6 +819,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
         continue;
       }
       std::string key = v.first.substr(name.length() + 1);
+
       if (key.find('/') == std::string::npos) {
         T value;
         if (!internal::xmlCast(v.second, &value)) {
