@@ -143,7 +143,7 @@ class RequiredArguments {
     for (int i = old_args.size(); i < *argc; ++i) {
       argv_aux_[i].reset(
           new char[std::strlen(added_args[i - old_args.size()].c_str()) +
-                   1]);  // Extra char for null-terminated string.
+              1]);  // Extra char for null-terminated string.
       strcpy(argv_aux_[i].get(), added_args[i - old_args.size()].c_str());
     }
 
@@ -745,7 +745,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
   void printConfigInternal(const std::string& name,
                            const internal::ConfigInternal* field) const {
     meta_data_->messages->emplace_back(std::string(meta_data_->indent, ' ') +
-                                       name + ":");
+        name + ":");
     meta_data_->messages->emplace_back(field->toStringInternal(
         meta_data_->indent +
             GlobalSettings::instance().default_subconfig_indent,
@@ -1145,7 +1145,7 @@ class Factory {
     std::string type_info = ss.str();
     if (!type_info.empty()) {
       type_info = " and constructor arguments '" +
-                  type_info.substr(0, type_info.size() - 2) + "'";
+          type_info.substr(0, type_info.size() - 2) + "'";
     } else {
       type_info = "";
     }
@@ -1178,7 +1178,7 @@ class Factory {
    public:
     using FactoryMethod = std::function<BaseT*(Args... args)>;
     using FactoryMethodRos =
-        std::function<BaseT*(const internal::ParamMap& params, Args... args)>;
+    std::function<BaseT*(const internal::ParamMap& params, Args... args)>;
 
     // Singleton access.
     static ModuleMap& instance() {
@@ -1246,7 +1246,7 @@ class Factory {
 namespace config_utilities {
 
 namespace internal {
-ParamMap getParamMapFromRos(const ros::NodeHandle& nh) {
+inline ParamMap getParamMapFromRos(const ros::NodeHandle& nh) {
   internal::ParamMap params;
   std::vector<std::string> keys;
   XmlRpc::XmlRpcValue value;
@@ -1306,7 +1306,7 @@ class FactoryRos : protected Factory {
     std::string type_info = ss.str();
     if (!type_info.empty()) {
       type_info = " and constructor arguments '" +
-                  type_info.substr(0, type_info.size() - 2) + "'";
+          type_info.substr(0, type_info.size() - 2) + "'";
     } else {
       type_info = "";
     }
@@ -1351,3 +1351,4 @@ class FactoryRos : protected Factory {
 }  // namespace config_utilities
 #endif  // CONFIG_UTILITIES_ROS_HPP_
 #endif  // CONFIG_UTILITIES_ROS_ENABLED
+
