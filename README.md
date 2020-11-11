@@ -43,10 +43,15 @@ Using config_utilities-based configs has the following advantages:
   ```
 * Everything related to a config is located at its definition/implementation, making all its properties clear and easy to change.
   No need for additional code in other files where changes could be overlooked.
-* Easy registration and factory creation for arbitrary classes:
   ```c++
+  my_class_using_configs.h / my_class_using_configs.cpp {
+    // Contains *all* variables, defaults, valid values, printing, ROS-creation, factory registration, ...
+  }
+    ```
+* Easy registration and factory creation for arbitrary classes with and without configs:
+  ```c++
+  static config_utilities::Factory::Registration<Base, Derived> registration("MyDerived");
   std::shared_ptr<Base> object = config_utilities::Factory::create<Base>("MyDerived");
-  
   ```
 
 # Installation
