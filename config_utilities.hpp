@@ -81,7 +81,7 @@ namespace config_utilities {
 /**
  * ==================== Settings ====================
  */
-namespace internal {
+namespace {
 struct GlobalSettings {
   GlobalSettings(const GlobalSettings& other) = delete;
   GlobalSettings& operator=(const GlobalSettings& other) = delete;
@@ -99,11 +99,11 @@ struct GlobalSettings {
  private:
   GlobalSettings() = default;
 };
-}  // namespace internal
+}  // namespace
 
 // Access.
-inline internal::GlobalSettings& GlobalSettings() {
-  return internal::GlobalSettings::instance();
+inline GlobalSettings& GlobalSettings() {
+  return GlobalSettings::instance();
 }
 
 /**
@@ -163,7 +163,7 @@ class RequiredArguments {
 /**
  * ==================== Internal Utilities ====================
  */
-namespace internal {
+namespace {
 // Printing utility
 inline std::string printCenter(const std::string& text, int width,
                                char symbol) {
@@ -330,7 +330,7 @@ inline bool xmlCast(const XmlRpc::XmlRpcValue& xml,
 }
 
 struct ConfigInternal;
-}  // namespace internal
+}  // namespace
 
 /**
  * ==================== ConfigChecker ====================
@@ -341,7 +341,7 @@ class ConfigChecker {
  public:
   explicit ConfigChecker(std::string module_name)
       : name_(std::move(module_name)),
-        print_width_(GlobalSettings().default_print_width) {}
+        print_width_(GlobalSettings::instance().default_print_width) {}
 
   bool isValid(bool print_warnings = false) const {
     if (warnings_.empty()) {
@@ -351,7 +351,7 @@ class ConfigChecker {
       std::string sev = "Warning: ";
       int length = print_width_ - sev.length();
       std::string warning =
-          "\n" + internal::printCenter(name_, print_width_, '=');
+          "\n" + printCenter(name_, print_width_, '=');
       for (std::string w : warnings_) {
         std::string line = sev;
         while (w.length() > length) {
@@ -449,7 +449,7 @@ class ConfigChecker {
 /**
  * ==================== ConfigInternal ====================
  */
-namespace internal {
+namespace {
 // Base class for internal use.
 struct ConfigInternal : public ConfigInternalVerificator {
  public:
@@ -484,7 +484,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     ((ConfigInternal*)this)->setupParamsAndPrinting();
     printFields();
     std::string result =
-        internal::printCenter(name_, meta_data_->print_width, '=');
+        printCenter(name_, meta_data_->print_width, '=');
     for (const std::string& msg : *(meta_data_->messages)) {
       result.append("\n" + msg);
     }
@@ -600,7 +600,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
     meta_data_->checker->checkCond(condition, warning);
   }
-  void checkParamConfig(const internal::ConfigInternal& config) const {
+  void checkParamConfig(const ConfigInternal& config) const {
     if (!meta_data_->checker) {
       LOG(WARNING) << "'checkParamConfig()' calls are only allowed within the "
                       "'checkParams()' method, no checks will be performed.";
@@ -623,7 +623,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
       return;
     }
     if (isConfig(&field)) {
-      printConfigInternal(name, (const internal::ConfigInternal*)&field);
+      printConfigInternal(name, (const ConfigInternal*)&field);
     } else {
       std::stringstream ss;
       ss << field;
@@ -734,7 +734,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
   }
 
   void printConfigInternal(const std::string& name,
-                           const internal::ConfigInternal* field) const {
+                           const ConfigInternal* field) const {
     meta_data_->messages->emplace_back(std::string(meta_data_->indent, ' ') +
         name + ":");
     meta_data_->messages->emplace_back(field->toStringInternal(
@@ -772,11 +772,8 @@ struct ConfigInternal : public ConfigInternalVerificator {
     return result;
   };
 
-  void setupFromParamMap(const internal::ParamMap& params) {
-    auto it = params.find("_name_space");
-    if (it != params.end()) {
-      xmlCast(params.at("_name_space"), &param_namespace_);
-    }
+  void setupFromParamMap(const ParamMap& params) {
+    xmlCast(params.at("_name_space"), &param_namespace_);
     meta_data_->params = &params;
     meta_data_->merged_setup_already_used = true;
     meta_data_->merged_setup_set_params = true;
@@ -804,7 +801,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
       return;
     }
     // Set the param.
-    if (!internal::xmlCast(it->second, param)) {
+    if (!xmlCast(it->second, param)) {
       LOG(WARNING) << name_ << ": param '" << name
                    << "' is set but could not be read.";
     }
@@ -832,7 +829,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
 
       if (key.find('/') == std::string::npos) {
         T value;
-        if (!internal::xmlCast(v.second, &value)) {
+        if (!xmlCast(v.second, &value)) {
           LOG(WARNING) << name_ << ": param '" << name
                        << "' is set but could not be read.";
           return;
@@ -945,7 +942,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
       return;
     }
     // Get all params of the sub_namespace.
-    internal::ParamMap params;
+    ParamMap params;
     if (sub_namespace.empty()) {
       params = *(meta_data_->params);
     } else {
@@ -956,6 +953,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
         std::string key = p.first.substr(sub_namespace.length() + 1);
         params[key] = p.second;
       }
+      params["_name_space"] = param_namespace_.append("/" + sub_namespace);
     }
     setupConfigFromParamMap(params, config);
   }
@@ -1123,14 +1121,14 @@ struct ConfigInternal : public ConfigInternalVerificator {
 #endif  // CONFIG_UTILITIES_TRANSFORMATION_ENABLED
 
  private:
-  friend void setupConfigFromParamMap(const internal::ParamMap& params,
+  friend void setupConfigFromParamMap(const ParamMap& params,
                                       ConfigInternal* config);
 
   struct MetaData {
     // tools
     std::unique_ptr<ConfigChecker> checker;
     std::unique_ptr<std::vector<std::string>> messages;
-    const internal::ParamMap* params = nullptr;
+    const ParamMap* params = nullptr;
 
     // settings and variables
     int print_width = GlobalSettings::instance().default_print_width;
@@ -1169,13 +1167,13 @@ inline void setupConfigFromParamMap(const ParamMap& params,
   config->setupFromParamMap(params);
 }
 
-}  // namespace internal
+}  // namespace
 
 /**
  * ==================== Config ====================
  */
 template <typename ConfigT>
-struct Config : public internal::ConfigInternal {
+struct Config : public ConfigInternal {
  public:
   // Construction.
   Config() : ConfigInternal(typeid(ConfigT).name()) {}
@@ -1257,7 +1255,7 @@ class Factory {
    public:
     using FactoryMethod = std::function<BaseT*(Args... args)>;
     using FactoryMethodRos =
-    std::function<BaseT*(const internal::ParamMap& params, Args... args)>;
+    std::function<BaseT*(const ParamMap& params, Args... args)>;
 
     // Singleton access.
     static ModuleMap& instance() {
@@ -1287,7 +1285,7 @@ class Factory {
       } else {
         map_ros.insert(std::make_pair(
             type,
-            [type](const internal::ParamMap& params, Args... args) -> BaseT* {
+            [type](const ParamMap& params, Args... args) -> BaseT* {
               typename DerivedT::Config config;
               auto config_ptr =
                   dynamic_cast<Config<typename DerivedT::Config>*>(&config);
@@ -1298,7 +1296,7 @@ class Factory {
                               "'config_utilities::Config<DerivedT::Config>'.";
                 return nullptr;
               }
-              internal::setupConfigFromParamMap(params, config_ptr);
+              setupConfigFromParamMap(params, config_ptr);
               return new DerivedT(config, args...);
             }));
       }
@@ -1324,9 +1322,9 @@ class Factory {
 #define CONFIG_UTILITIES_ROS_HPP_
 namespace config_utilities {
 
-namespace internal {
+namespace {
 inline ParamMap getParamMapFromRos(const ros::NodeHandle& nh) {
-  internal::ParamMap params;
+  ParamMap params;
   std::vector<std::string> keys;
   XmlRpc::XmlRpcValue value;
   const std::string& ns = nh.getNamespace();
@@ -1342,13 +1340,13 @@ inline ParamMap getParamMapFromRos(const ros::NodeHandle& nh) {
   params["_name_space"] = ns;
   return params;
 }
-}  // namespace internal
+}  // namespace
 
 // Tool to create configs from ROS.
 template <typename ConfigT>
 ConfigT getConfigFromRos(const ros::NodeHandle& nh) {
   ConfigT config;
-  if (!internal::isConfig(&config)) {
+  if (!isConfig(&config)) {
     LOG(ERROR) << "Cannot 'getConfigFromRos()' for <ConfigT>='"
                << typeid(ConfigT).name()
                << "' that does not inherit from "
@@ -1365,8 +1363,8 @@ ConfigT getConfigFromRos(const ros::NodeHandle& nh) {
   }
 
   // Setup.
-  internal::ParamMap params = internal::getParamMapFromRos(nh);
-  internal::setupConfigFromParamMap(params, config_ptr);
+  ParamMap params = getParamMapFromRos(nh);
+  setupConfigFromParamMap(params, config_ptr);
   return config;
 }
 /**
@@ -1422,7 +1420,7 @@ class FactoryRos : protected Factory {
     }
 
     // Get the config and create the target.
-    internal::ParamMap params = internal::getParamMapFromRos(nh);
+    ParamMap params = getParamMapFromRos(nh);
     return std::unique_ptr<BaseT>(it->second(params, args...));
   }
 };

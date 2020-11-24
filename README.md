@@ -283,7 +283,7 @@ Sets up a derived class from ROS, prints its nested config, and check for validi
 e:                  Bananas are yellow.
 f:                  6
 other_config:
-   a:               -11.1
+   a:               11.1
    b:               222
 base_config:
    c:               False

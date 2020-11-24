@@ -89,7 +89,6 @@ class MyDerived : public MyBase {
 
       // Here we use a sub_namespace 'base' to create the base config from.
       setupParam("base_config", &base_config, "base");
-
     }
 
     void checkParams() const override {
@@ -114,7 +113,6 @@ int main(int argc, char** argv) {
       &argc, &argv, {"--logtostderr", "--colorlogtostderr"});
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);
-  google::InstallFailureSignalHandler();
 
   // General settings for all configs that are created after this statement.
   config_utilities::GlobalSettings().default_print_width = 60;
@@ -127,7 +125,7 @@ int main(int argc, char** argv) {
   nh_private.setParam("base/b", 2);
   nh_private.setParam("base/c", false);
   nh_private.setParam("base/d", 3.45);
-  nh_private.setParam("a", -11.1);
+  nh_private.setParam("a", 11.1);
   nh_private.setParam("b", 222);
   nh_private.setParam("e", "Bananas are yellow.");
   nh_private.setParam("f", 6.78);
