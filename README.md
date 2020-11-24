@@ -3,7 +3,7 @@ Utility tools to make working with config structs for (ROS) C++ libraries more u
 
 * **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
-* **Version:** 1.1.1
+* **Version:** 1.1.2
 * **License:** BSD-3-Clause.
 
 ### Table of contents
