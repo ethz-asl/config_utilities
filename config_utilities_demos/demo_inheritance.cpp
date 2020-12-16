@@ -116,7 +116,7 @@ class MyDerived : public MyBase {
   explicit MyDerived(const Config& config)
       : MyBase(config.base_config), config_(config.checkValid()) {}
 
-  void printConfig() const {std::cout << config_.toString() << std::endl; }
+  void printConfig() const { std::cout << config_.toString() << std::endl; }
 
  private:
   const Config config_;
@@ -128,7 +128,6 @@ int main(int argc, char** argv) {
       &argc, &argv, {"--logtostderr", "--colorlogtostderr"});
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);
-  google::InstallFailureSignalHandler();
 
   // General settings for all configs that are created after this statement.
   config_utilities::GlobalSettings().default_print_width = 60;
