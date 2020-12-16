@@ -19,19 +19,19 @@ struct OtherConfig : public config_utilities::Config<OtherConfig> {
   float a = 0.f;
   int b = 0;
 
-  void fromRosParam() override {
-    rosParam("a", &a);
-    rosParam("b", &b);
-  }
+  OtherConfig() { setConfigName("OtherConfig"); }
 
-  void printFields() const override {
-    printField("a", a);
-    printField("b", b);
+ protected:
+  // fromRosParam() and printFields() can be combined in
+  // setupParamsAndPrinting() to save code duplication. setupParamsAndPrinting()
+  // precedes fromRosParam() and printFields() in order of execution, special
+  // requirements can thus still be implemented using these.
+  void setupParamsAndPrinting() override {
+    setupParam("a", &a);
+    setupParam("b", &b);
   }
 
   void checkParams() const override { checkParamGE(a, 0.0f, "a"); }
-
-  OtherConfig() { setConfigName("OtherConfig"); }
 };
 
 // Define a base class that uses a base config.
@@ -44,6 +44,9 @@ class MyBase {
     // Configs are allowed to contain other configs.
     OtherConfig other_config;
 
+    Config() { setConfigName("MyBase"); }
+
+   protected:
     void fromRosParam() override {
       rosParam("c", &c);
       rosParam("d", &d);
@@ -67,8 +70,6 @@ class MyBase {
       // Use checkParamConfig() to validate entire configs.
       checkParamConfig(other_config);
     }
-
-    Config() { setConfigName("MyBase"); }
   };
 
   explicit MyBase(const Config& config) : config_(config.checkValid()) {}
@@ -89,6 +90,9 @@ class MyDerived : public MyBase {
     MyBase::Config base_config;
     OtherConfig other_config;
 
+    Config() { setConfigName("MyDerivedConfig"); }
+
+   protected:
     void fromRosParam() override {
       rosParam("e", &e);
       rosParam("f", &f);
@@ -105,8 +109,6 @@ class MyDerived : public MyBase {
       printField("base_config", base_config);
     }
 
-    Config() { setConfigName("MyDerivedConfig"); }
-
     void checkParams() const override { checkParamConfig(base_config); }
   };
 
@@ -114,7 +116,7 @@ class MyDerived : public MyBase {
   explicit MyDerived(const Config& config)
       : MyBase(config.base_config), config_(config.checkValid()) {}
 
-  void print() const { std::cout << config_.toString() << std::endl; }
+  void printConfig() const {std::cout << config_.toString() << std::endl; }
 
  private:
   const Config config_;
@@ -126,6 +128,7 @@ int main(int argc, char** argv) {
       &argc, &argv, {"--logtostderr", "--colorlogtostderr"});
   google::InitGoogleLogging(argv[0]);
   google::ParseCommandLineFlags(&argc, &argv, false);
+  google::InstallFailureSignalHandler();
 
   // General settings for all configs that are created after this statement.
   config_utilities::GlobalSettings().default_print_width = 60;
@@ -147,7 +150,7 @@ int main(int argc, char** argv) {
   MyDerived::Config config =
       config_utilities::getConfigFromRos<MyDerived::Config>(nh_private);
   MyDerived derived(config);
-  derived.print();
+  derived.printConfig();
 
   // Invalidate a member config to provoke an invalid check.
   config.base_config.other_config.a = -1.0f;

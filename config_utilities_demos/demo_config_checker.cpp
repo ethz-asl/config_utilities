@@ -15,7 +15,7 @@ struct IndependentConfig {
   std::string c = "this is c";
 
   // Use the config checker to check all params of the config.
-  [[nodiscard]] bool isValid(bool print_warnings = false) const {
+  bool isValid(bool print_warnings = false) const {
     // Create the checker with the config name.
     config_utilities::ConfigChecker checker("IndependentConfig");
 

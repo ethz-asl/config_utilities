@@ -19,6 +19,14 @@ class MyClass {
     double b_half = -1.0;
     std::string c = "this is c";
 
+    // General fields can be set in the constructor if required.
+    Config() {
+      setConfigName("MyClass-Config");
+      setPrintWidth(40);
+      setPrintIndent(15);
+    }
+
+   protected:
     // To add parameter conditions override 'checkParams()'. The checks can be
     // performed using the checkParamX tools, which have  identical interfaces
     // as the 'ConfigChecker'.
@@ -49,13 +57,6 @@ class MyClass {
       if (b_half == -1.0) {
         b_half = b / 2.0;
       }
-    }
-
-    // General fields can be set in the constructor if required.
-    Config() {
-      setConfigName("MyClass-Config");
-      setPrintWidth(40);
-      setPrintIndent(15);
     }
   };
 
