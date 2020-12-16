@@ -11,7 +11,7 @@
 // (i.e. getConfigFromRos()) are enabled.
 #include <ros/node_handle.h>
 
-#include "../config_utilities.hpp"
+#include "config_utilities.hpp"
 
 // The method introduced below also works for other configs, so we declare
 // another config.

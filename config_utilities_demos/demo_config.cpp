@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 
-#include "../config_utilities.hpp"
+#include "config_utilities.hpp"
 
 // Define a class that uses a config.
 class MyClass {

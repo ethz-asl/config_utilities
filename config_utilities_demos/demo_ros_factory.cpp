@@ -4,13 +4,14 @@
  */
 
 #include <iostream>
+#include <memory>
 #include <string>
 
 // NOTE: This is required before config_utilities, s.t. the ROS-tools,
 // i.e. FactoryROS::create(), are enabled.
 #include <ros/node_handle.h>
 
-#include "../config_utilities.hpp"
+#include "config_utilities.hpp"
 
 // Define a common base class.
 class Base {

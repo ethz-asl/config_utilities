@@ -502,7 +502,8 @@ struct ConfigInternal : public ConfigInternalVerificator {
     if (!meta_data_->merged_setup_already_used) {
       meta_data_->messages->emplace_back(
           std::string(meta_data_->indent, ' ')
-              .append("The 'printFields()' method is not implemented."));
+              .append("The 'printFields()' method is not implemented for " +
+                      name_ + "'."));
     }
   }
 
