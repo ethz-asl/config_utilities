@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 
-#include "../config_utilities.hpp"
+#include "config_utilities.hpp"
 
 // Define a class that uses a config.
 class MyClass {
@@ -22,7 +22,7 @@ class MyClass {
     // General fields can be set in the constructor if required.
     Config() {
       setConfigName("MyClass-Config");
-      setPrintWidth(40);
+      setPrintWidth(50);
       setPrintIndent(15);
     }
 

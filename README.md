@@ -3,7 +3,7 @@ Utility tools to make working with config structs for (ROS) C++ libraries more u
 
 * **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
-* **Version:** 1.1.1
+* **Version:** 1.1.2
 * **License:** BSD-3-Clause.
 
 ### Table of contents
@@ -13,7 +13,7 @@ Utility tools to make working with config structs for (ROS) C++ libraries more u
 * [**Demos**](#Demos)
   * [config_checker](#Config-Checker)
   * [config](#Config)
-  * [ros_param](#ROS-Params)
+  * [ros_param](#ROS-Param)
   * [inheritance](#Inheritance)
   * [factory](#factory)
   * [ros_factory](#ROS-Factory)
@@ -254,10 +254,10 @@ Warning: b is expected > a.
 ========================================
 ```
 
-## ROS Params
+## ROS Param
 This demo describes how to use the `config_utilities::getConfigFromRos<Config>()` function to setup configs via the ROS parameter server:
 ```sh
-roscore & rosrun config_utilities_demos demo_ros_params
+roscore & rosrun config_utilities_demos demo_ros_param
 ```
 Sets config params from ros and prints them to console:
 ```
@@ -283,7 +283,7 @@ Sets up a derived class from ROS, prints its nested config, and check for validi
 e:                  Bananas are yellow.
 f:                  6
 other_config:
-   a:               -11.1
+   a:               11.1
    b:               222
 base_config:
    c:               False

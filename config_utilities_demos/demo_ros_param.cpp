@@ -5,7 +5,9 @@
  */
 
 #include <iostream>
+#include <map>
 #include <string>
+#include <vector>
 
 // NOTE: This is required before config_utilities, s.t. the ROS-tools,
 // i.e. getConfigFromRos(), are enabled.
@@ -15,7 +17,7 @@
 // transformations from ros params is enabled. Works outside of ROS.
 #include <kindr/minimal/quat-transformation.h>
 
-#include "../config_utilities.hpp"
+#include "config_utilities.hpp"
 
 using Transformation = kindr::minimal::QuatTransformationTemplate<double>;
 

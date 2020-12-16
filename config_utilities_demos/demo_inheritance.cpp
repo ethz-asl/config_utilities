@@ -11,7 +11,7 @@
 // (i.e. getConfigFromRos()) are enabled.
 #include <ros/node_handle.h>
 
-#include "../config_utilities.hpp"
+#include "config_utilities.hpp"
 
 // The method introduced below also works for other configs, so we declare
 // another config.
@@ -47,21 +47,10 @@ class MyBase {
     Config() { setConfigName("MyBase"); }
 
    protected:
-    void fromRosParam() override {
-      rosParam("c", &c);
-      rosParam("d", &d);
-
-      // The usual rosParam interfaces also work on configs. These don't require
-      // a param name, but optionally a sub_namespace can be specified.
-      rosParam(&other_config);
-    }
-
-    void printFields() const override {
-      printField("c", c);
-      printField("d", d);
-
-      // The usual printFields() method also works on configs.
-      printField("other_config", other_config);
+    void setupParamsAndPrinting() override {
+      setupParam("c", &c);
+      setupParam("d", &d);
+      setupParam("other_config", &other_config);
     }
 
     void checkParams() const override {
@@ -93,23 +82,19 @@ class MyDerived : public MyBase {
     Config() { setConfigName("MyDerivedConfig"); }
 
    protected:
-    void fromRosParam() override {
-      rosParam("e", &e);
-      rosParam("f", &f);
+    void setupParamsAndPrinting() override {
+      setupParam("e", &e);
+      setupParam("f", &f);
+      setupParam("other_config", &other_config);
 
       // Here we use a sub_namespace 'base' to create the base config from.
-      rosParam(&base_config, "base");
-      rosParam(&other_config);
+      setupParam("base_config", &base_config, "base");
     }
 
-    void printFields() const override {
-      printField("e", e);
-      printField("f", f);
-      printField("other_config", other_config);
-      printField("base_config", base_config);
+    void checkParams() const override {
+      checkParamConfig(base_config);
+      checkParamConfig(other_config);
     }
-
-    void checkParams() const override { checkParamConfig(base_config); }
   };
 
   // We can use the member config to initialize the base class.
@@ -140,7 +125,7 @@ int main(int argc, char** argv) {
   nh_private.setParam("base/b", 2);
   nh_private.setParam("base/c", false);
   nh_private.setParam("base/d", 3.45);
-  nh_private.setParam("a", -11.1);
+  nh_private.setParam("a", 11.1);
   nh_private.setParam("b", 222);
   nh_private.setParam("e", "Bananas are yellow.");
   nh_private.setParam("f", 6.78);

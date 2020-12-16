@@ -6,7 +6,7 @@
 #include <iostream>
 #include <string>
 
-#include "../config_utilities.hpp"
+#include "config_utilities.hpp"
 
 // Define a struct that is not a config_utilities::Config.
 struct IndependentConfig {
@@ -29,10 +29,10 @@ struct IndependentConfig {
 
     // Return the summary.
     return checker.isValid(print_warnings);
-  };
+  }
 
   // A function that guarantees validity and exits the program otherwise.
-  void checkValid() const { CHECK(isValid(true)); };
+  void checkValid() const { CHECK(isValid(true)); }
 };
 
 int main(int argc, char** argv) {
