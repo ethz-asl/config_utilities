@@ -13,7 +13,7 @@ Utility tools to make working with config structs for (ROS) C++ libraries more u
 * [**Demos**](#Demos)
   * [config_checker](#Config-Checker)
   * [config](#Config)
-  * [ros_param](#ROS-Params)
+  * [ros_param](#ROS-Param)
   * [inheritance](#Inheritance)
   * [factory](#factory)
   * [ros_factory](#ROS-Factory)
@@ -254,10 +254,10 @@ Warning: b is expected > a.
 ========================================
 ```
 
-## ROS Params
+## ROS Param
 This demo describes how to use the `config_utilities::getConfigFromRos<Config>()` function to setup configs via the ROS parameter server:
 ```sh
-roscore & rosrun config_utilities_demos demo_ros_params
+roscore & rosrun config_utilities_demos demo_ros_param
 ```
 Sets config params from ros and prints them to console:
 ```
