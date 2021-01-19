@@ -131,11 +131,6 @@ int main(int argc, char** argv) {
   nh_private.setParam("e", "Bananas are yellow.");
   nh_private.setParam("f", 6.78);
 
-  ros::NodeHandle nh_global("/");
-  nh_global.setParam("test/a", 7.0);
-  nh_global.setParam("test/b", 7);
-  nh_global.setParam("test/d", 7.0);
-
   // We can as usual get the derived config and instantiate a derived object.
   MyDerived::Config config =
       config_utilities::getConfigFromRos<MyDerived::Config>(nh_private);
