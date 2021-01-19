@@ -35,8 +35,8 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <ros/node_handle.h>
 
-// Raise a redefined warning if different versions are used. v=MMmmPP.
-#define CONFIG_UTILITIES_VERSION 010102
+// Raises a redefined warning if different versions are used. v=MMmmPP.
+#define CONFIG_UTILITIES_VERSION 010103
 
 /**
  * Depending on which headers are available, ROS dependencies are included in
