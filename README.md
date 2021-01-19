@@ -67,7 +67,7 @@ Using config_utilities-based configs has the following advantages:
     sudo apt-get install libgoogle-glog-dev
     ```
     ```sh
-    # Alternatively, as Catkin Package:
+    # Alternatively, as Catkin Package with prior ROS installation:
     cd ~/catkin_ws/src
     git clone git@github.com:ethz-asl/glog_catkin.git
     catkin build glog_catkin
@@ -75,7 +75,7 @@ Using config_utilities-based configs has the following advantages:
 
 * **Demos Package**
 
-  To run the demos, the package can be conveniently installed via catkin: 
+  To run the demos, the ROS package can be conveniently installed via catkin: 
   ```sh
   cd ~/catkin_ws/src
   git clone https://github.com/Schmluk/config_utilities.git
@@ -86,7 +86,7 @@ Using config_utilities-based configs has the following advantages:
   git clone git@github.com:ethz-asl/minkindr.git
   git clone git@github.com:ethz-asl/eigen_catkin.git
   
-  cd config_utilities_demos
+  cd config_utilities
   catkin build --this
   ```
   
@@ -175,7 +175,7 @@ MyConfig::printFields() const {
 void rosParam<T>(const std::string& name, T* param);
 // Also works for configs, these don't require a name but an optional sub_namespace.
 void rosParam(Config* config, const std::string& sub_namespace = "");
-// The namespace of the creating nodehandle can be querried via rosParamNameSpace().
+// The namespace of the creating nodehandle can be queried via rosParamNameSpace().
 string rosParamNameSpace();
 
 // Use these tools within fromRosParam(). Defaults should be set at variable declaration.
