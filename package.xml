@@ -13,11 +13,15 @@
     <buildtool_depend>catkin</buildtool_depend>
     <buildtool_depend>catkin_simple</buildtool_depend>
 
-    <depend>roscpp</depend>
+    <!-- To build non-ROS packages that use config_utilities via catkin, minkindr and eigen are optional. -->
+    <depend>xmlrpcpp</depend>
     <depend>glog_catkin</depend>
     <depend>gflags_catkin</depend>
     <depend>minkindr</depend>
     <depend>eigen_catkin</depend>
+
+    <!-- ROS demos. -->
+    <depend>roscpp</depend>
 
     <export>
     </export>
