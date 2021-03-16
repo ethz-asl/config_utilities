@@ -3,7 +3,7 @@ Utility tools to make working with config structs for (ROS) C++ libraries more u
 
 * **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
-* **Version:** 1.1.2
+* **Version:** 1.1.3
 * **License:** BSD-3-Clause.
 
 ### Table of contents
@@ -67,7 +67,7 @@ Using config_utilities-based configs has the following advantages:
     sudo apt-get install libgoogle-glog-dev
     ```
     ```sh
-    # Alternatively, as Catkin Package:
+    # Alternatively, as Catkin Package with prior ROS installation:
     cd ~/catkin_ws/src
     git clone git@github.com:ethz-asl/glog_catkin.git
     catkin build glog_catkin
@@ -75,7 +75,7 @@ Using config_utilities-based configs has the following advantages:
 
 * **Demos Package**
 
-  To run the demos, the package can be conveniently installed via catkin: 
+  To run the demos, the ROS package can be conveniently installed via catkin: 
   ```sh
   cd ~/catkin_ws/src
   git clone https://github.com/Schmluk/config_utilities.git
@@ -86,7 +86,7 @@ Using config_utilities-based configs has the following advantages:
   git clone git@github.com:ethz-asl/minkindr.git
   git clone git@github.com:ethz-asl/eigen_catkin.git
   
-  cd config_utilities_demos
+  cd config_utilities
   catkin build --this
   ```
   
@@ -175,7 +175,7 @@ MyConfig::printFields() const {
 void rosParam<T>(const std::string& name, T* param);
 // Also works for configs, these don't require a name but an optional sub_namespace.
 void rosParam(Config* config, const std::string& sub_namespace = "");
-// The namespace of the creating nodehandle can be querried via rosParamNameSpace().
+// The namespace of the creating nodehandle can be queried via rosParamNameSpace().
 string rosParamNameSpace();
 
 // Use these tools within fromRosParam(). Defaults should be set at variable declaration.
@@ -211,12 +211,12 @@ std::unique_ptr<BaseT> config_utilities::FactoryRos::create<BaseT>(const ros::No
 
  
 # Demos
-Verbose examples of the most important functionalities are given in the config_utilities_demos package.
+Verbose examples of the most important functionalities are given in the demos folder. They can easily be run after building the config_utilities ROS-package.
 
 ## Config Checker
 This demo describes how to use the `ConfigChecker` class to verify non-config_utilities configs in a readable way:
 ```sh
-rosrun config_utilities_demos demo_config_checker
+rosrun config_utilities demo_config_checker
 ```
 Runs a validity check and prints all warnings to console:
 ```
@@ -229,7 +229,7 @@ Warning: Param 'c' is expected to be 'this is c' (is: 'test').
 ## Config
 This demo describes how to define custom classes that utilize a `Config` struct:
 ```sh
-rosrun config_utilities_demos demo_config
+rosrun config_utilities demo_config
 ```
 This will setup a class using a valid config and print it to console, as well as a creation attempt with an invalid config:
 ```
@@ -257,7 +257,7 @@ Warning: b is expected > a.
 ## ROS Param
 This demo describes how to use the `config_utilities::getConfigFromRos<Config>()` function to setup configs via the ROS parameter server:
 ```sh
-roscore & rosrun config_utilities_demos demo_ros_param
+roscore & rosrun config_utilities demo_ros_param
 ```
 Sets config params from ros and prints them to console:
 ```
@@ -275,7 +275,7 @@ namespace:     /demo_ros_param
 ## Inheritance
 This demo describes how to use nested configs, which can be used to setup derived and base classes:
 ```sh
-roscore & rosrun config_utilities_demos demo_inheritance
+roscore & rosrun config_utilities demo_inheritance
 ```
 Sets up a derived class from ROS, prints its nested config, and check for validity:
 ```
@@ -306,7 +306,7 @@ Warning: Member config 'MyBase' is not valid.
 ## Factory
 This demo describes how to use the `config_utilities::Factory::Registration()` and `config_utilities::Factory::create()` tools to instantiate various objects.
 ```sh
-rosrun config_utilities_demos demo_factory
+rosrun config_utilities demo_factory
 ```
 Defines two derived classes and registers them statically to the factory.
 ```
@@ -319,7 +319,7 @@ E1104 20:45:29.080973  6629 config_utilities.hpp:1152] No module with name 'Deri
 ## ROS Factory
 This demo describes how to use the `config_utilities::Factory::RegistrationRos()` and `config_utilities::FactoryRos::create()` tools to create different objects that use varying custom configs from the parameter server.
 ```sh
-roscore & rosrun config_utilities_demos demo_ros_factory
+roscore & rosrun config_utilities demo_ros_factory
 ```
 
 Defines two derived classes that use different configs and creates them from Ros.

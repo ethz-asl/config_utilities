@@ -2,7 +2,7 @@
 AUTHOR:       Lukas Schmid <schmluk@mavt.ethz.ch>
 AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
 SOURCE:       https://github.com/ethz-asl/config_utilities
-VERSION:      1.1.2
+VERSION:      1.1.3
 LICENSE:      BSD-3-Clause
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
@@ -33,10 +33,9 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <ros/node_handle.h>
 
-// Raise a redefined warning if different versions are used. v=MMmmPP.
-#define CONFIG_UTILITIES_VERSION 010102
+// Raises a redefined warning if different versions are used. v=MMmmPP.
+#define CONFIG_UTILITIES_VERSION 010103
 
 /**
  * Depending on which headers are available, ROS dependencies are included in
@@ -187,7 +186,10 @@ inline bool isConfig(const T* candidate) {
   return false;
 }
 
-// Setup type
+// Setup param type. These contain all params of the nodehandle and the full
+// namespaces, the params "_name_space" and "_name_space_private" are reserved
+// for the target namespace to look up data. Namespacing adheres to ROS
+// standards with "/" for global and "~" for private namespaces.
 using ParamMap = std::unordered_map<std::string, XmlRpc::XmlRpcValue>;
 
 // XML casts
@@ -774,10 +776,12 @@ struct ConfigInternal : public ConfigInternalVerificator {
   };
 
   void setupFromParamMap(const internal::ParamMap& params) {
-    auto it = params.find("_name_space");
-    if (it != params.end()) {
+    param_namespace_ = "/";
+    if (params.find("_name_space") != params.end()) {
       xmlCast(params.at("_name_space"), &param_namespace_);
     }
+
+    // Read params
     meta_data_->params = &params;
     meta_data_->merged_setup_already_used = true;
     meta_data_->merged_setup_set_params = true;
@@ -800,7 +804,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
       return;
     }
     // Check the param is set.
-    auto it = meta_data_->params->find(name);
+    auto it = meta_data_->params->find(param_namespace_ + "/" + name);
     if (it == meta_data_->params->end()) {
       return;
     }
@@ -928,7 +932,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
       return;
     }
     // Check the param is set.
-    auto it = meta_data_->params->find(name);
+    auto it = meta_data_->params->find(param_namespace_ + "/" + name);
     if (it == meta_data_->params->end()) {
       return;
     }
@@ -945,18 +949,20 @@ struct ConfigInternal : public ConfigInternalVerificator {
       }
       return;
     }
-    // Get all params of the sub_namespace.
-    internal::ParamMap params;
+
+    // Update the sub-namespace. Default to same ns. Leading "/" for global ns.
+    // Leading "~" for private ns.
+    internal::ParamMap params = *(meta_data_->params);
     if (sub_namespace.empty()) {
-      params = *(meta_data_->params);
+      params["_name_space"] = param_namespace_;
+    } else if (sub_namespace.front() == '/') {
+      params["_name_space"] = sub_namespace;
+    } else if (sub_namespace.front() == '~') {
+      params["_name_space"] =
+          static_cast<std::string>(params["_name_space_private"]) +
+          sub_namespace.substr(1);
     } else {
-      for (const auto& p : *(meta_data_->params)) {
-        if (p.first.find(sub_namespace + "/") != 0) {
-          continue;
-        }
-        std::string key = p.first.substr(sub_namespace.length() + 1);
-        params[key] = p.second;
-      }
+      params["_name_space"] = param_namespace_ + "/" + sub_namespace;
     }
     setupConfigFromParamMap(params, config);
   }
@@ -969,7 +975,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
             << "'rosParamNameSpace()' calls are only allowed within the "
                "'fromRosParam()' method, no param will be loaded.";
       }
-      return param_namespace_;
     }
     return param_namespace_;
   }
@@ -1057,7 +1062,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
       return;
     }
     // Check the param is set.
-    auto it = meta_data_->params->find(name);
+    auto it = meta_data_->params->find(param_namespace_ + "/" + name);
     if (it == meta_data_->params->end()) {
       return;
     }
@@ -1333,14 +1338,11 @@ inline ParamMap getParamMapFromRos(const ros::NodeHandle& nh) {
   const std::string& ns = nh.getNamespace();
   nh.getParamNames(keys);
   for (std::string& key : keys) {
-    if (key.find(ns) != 0) {
-      continue;
-    }
-    key = key.substr(ns.length() + 1);
     nh.getParam(key, value);
     params[key] = value;
   }
   params["_name_space"] = ns;
+  params["_name_space_private"] = ns;
   return params;
 }
 }  // namespace internal

@@ -1,23 +1,27 @@
 <?xml version="1.0"?>
 <package format="2">
-    <name>config_utilities_demos</name>
-    <version>0.0.0</version>
+    <name>config_utilities</name>
+    <version>1.1.3</version>
     <description>Ros package to demonstrate the use of config_utilities. </description>
 
     <author email="schmluk@mavt.ethz.ch">Lukas Schmid</author>
-
+    
     <maintainer email="schmluk@mavt.ethz.ch">Lukas Schmid</maintainer>
-
+    
     <license>BSD</license>
 
     <buildtool_depend>catkin</buildtool_depend>
     <buildtool_depend>catkin_simple</buildtool_depend>
 
-    <depend>roscpp</depend>
+    <!-- To build non-ROS packages that use config_utilities via catkin, minkindr and eigen are optional. -->
+    <depend>xmlrpcpp</depend>
     <depend>glog_catkin</depend>
     <depend>gflags_catkin</depend>
     <depend>minkindr</depend>
     <depend>eigen_catkin</depend>
+
+    <!-- ROS demos. -->
+    <depend>roscpp</depend>
 
     <export>
     </export>
