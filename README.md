@@ -3,7 +3,7 @@ Utility tools to make working with config structs for (ROS) C++ libraries more u
 
 * **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
-* **Version:** 1.1.3
+* **Version:** 1.1.4
 * **License:** BSD-3-Clause.
 
 ### Table of contents
@@ -23,7 +23,7 @@ Utility tools to make working with config structs for (ROS) C++ libraries more u
 This library was developed to make working with config structs for object-oriented C++ libraries as simple as possible.
 Using config_utilities-based configs has the following advantages:
 
-* Having all parameters in a config struct, rather than with other variables, makes code clearer more readable:
+* Having all parameters in a config struct, rather than with other variables, makes code clearer and more readable:
   ```c++
   if (x_ < config_.x_max) { doMagic(); }
   ```

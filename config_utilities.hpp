@@ -2,7 +2,7 @@
 AUTHOR:       Lukas Schmid <schmluk@mavt.ethz.ch>
 AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
 SOURCE:       https://github.com/ethz-asl/config_utilities
-VERSION:      1.1.3
+VERSION:      1.1.4
 LICENSE:      BSD-3-Clause
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
@@ -33,9 +33,8 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 // Raises a redefined warning if different versions are used. v=MMmmPP.
-#define CONFIG_UTILITIES_VERSION 010103
+#define CONFIG_UTILITIES_VERSION 010104
 
 /**
  * Depending on which headers are available, ROS dependencies are included in
@@ -142,7 +141,7 @@ class RequiredArguments {
     for (int i = old_args.size(); i < *argc; ++i) {
       argv_aux_[i].reset(
           new char[std::strlen(added_args[i - old_args.size()].c_str()) +
-              1]);  // Extra char for null-terminated string.
+                   1]);  // Extra char for null-terminated string.
       strcpy(argv_aux_[i].get(), added_args[i - old_args.size()].c_str());
     }
 
@@ -192,13 +191,16 @@ inline bool isConfig(const T* candidate) {
 // standards with "/" for global and "~" for private namespaces.
 using ParamMap = std::unordered_map<std::string, XmlRpc::XmlRpcValue>;
 
-// XML casts
+// XML casts. Default is not castable.
 template <typename T>
-inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, T*) {
+inline bool xmlCast(XmlRpc::XmlRpcValue xml, T*) {
   return false;
 }
 
-inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, bool* param = nullptr) {
+// NOTE: the copy of the xml values is required for compatibility with ROS
+// Kinetic, since the cast to value type is a non-const operation.
+
+inline bool xmlCast(XmlRpc::XmlRpcValue xml, bool* param = nullptr) {
   switch (xml.getType()) {
     case XmlRpc::XmlRpcValue::Type::TypeBoolean: {
       if (param) {
@@ -223,7 +225,7 @@ inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, bool* param = nullptr) {
   }
 }
 
-inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, int* param = nullptr) {
+inline bool xmlCast(XmlRpc::XmlRpcValue xml, int* param = nullptr) {
   switch (xml.getType()) {
     case XmlRpc::XmlRpcValue::Type::TypeBoolean: {
       if (param) {
@@ -248,7 +250,7 @@ inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, int* param = nullptr) {
   }
 }
 
-inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, float* param = nullptr) {
+inline bool xmlCast(XmlRpc::XmlRpcValue xml, float* param = nullptr) {
   switch (xml.getType()) {
     case XmlRpc::XmlRpcValue::Type::TypeBoolean: {
       if (param) {
@@ -273,7 +275,7 @@ inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, float* param = nullptr) {
   }
 }
 
-inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, double* param = nullptr) {
+inline bool xmlCast(XmlRpc::XmlRpcValue xml, double* param = nullptr) {
   switch (xml.getType()) {
     case XmlRpc::XmlRpcValue::Type::TypeBoolean: {
       if (param) {
@@ -298,8 +300,7 @@ inline bool xmlCast(const XmlRpc::XmlRpcValue& xml, double* param = nullptr) {
   }
 }
 
-inline bool xmlCast(const XmlRpc::XmlRpcValue& xml,
-                    std::string* param = nullptr) {
+inline bool xmlCast(XmlRpc::XmlRpcValue xml, std::string* param = nullptr) {
   switch (xml.getType()) {
     case XmlRpc::XmlRpcValue::Type::TypeString: {
       if (param) {
@@ -313,8 +314,7 @@ inline bool xmlCast(const XmlRpc::XmlRpcValue& xml,
 }
 
 template <typename T>
-inline bool xmlCast(const XmlRpc::XmlRpcValue& xml,
-                    std::vector<T>* param = nullptr) {
+inline bool xmlCast(XmlRpc::XmlRpcValue xml, std::vector<T>* param = nullptr) {
   if (xml.getType() != XmlRpc::XmlRpcValue::TypeArray) {
     return false;
   }
@@ -739,7 +739,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
   void printConfigInternal(const std::string& name,
                            const internal::ConfigInternal* field) const {
     meta_data_->messages->emplace_back(std::string(meta_data_->indent, ' ') +
-        name + ":");
+                                       name + ":");
     meta_data_->messages->emplace_back(field->toStringInternal(
         meta_data_->indent +
             GlobalSettings::instance().default_subconfig_indent,
@@ -1023,11 +1023,13 @@ struct ConfigInternal : public ConfigInternalVerificator {
     this->setupParamInternal(name, param);
   }
 
-  void setupParam(const std::string& name, std::map<std::string, double>* param) {
+  void setupParam(const std::string& name,
+                  std::map<std::string, double>* param) {
     this->setupParamInternal(name, param);
   }
 
-  void setupParam(const std::string& name, std::map<std::string, float>* param) {
+  void setupParam(const std::string& name,
+                  std::map<std::string, float>* param) {
     this->setupParamInternal(name, param);
   }
 
@@ -1036,11 +1038,12 @@ struct ConfigInternal : public ConfigInternalVerificator {
   }
 
   void setupParam(const std::string& name,
-                std::map<std::string, std::string>* param) {
+                  std::map<std::string, std::string>* param) {
     this->setupParamInternal(name, param);
   }
 
-  void setupParam(const std::string&name, ConfigInternal* config, const std::string& sub_namespace = "") {
+  void setupParam(const std::string& name, ConfigInternal* config,
+                  const std::string& sub_namespace = "") {
     if (meta_data_->merged_setup_set_params) {
       rosParam(config, sub_namespace);
     } else {
@@ -1066,7 +1069,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     if (it == meta_data_->params->end()) {
       return;
     }
-    const XmlRpc::XmlRpcValue& xml = it->second;
+    XmlRpc::XmlRpcValue xml = it->second;
     // NOTE: This code was taken and adapted from minkindr_conversions:
     // https://github.com/ethz-asl/minkindr_ros/blob/master/
     // minkindr_conversions/include/minkindr_conversions/kindr_xml.h
@@ -1123,7 +1126,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
 
   template <typename Scalar>
   void setupParam(const std::string& name,
-                kindr::minimal::QuatTransformationTemplate<Scalar>* param) {
+                  kindr::minimal::QuatTransformationTemplate<Scalar>* param) {
     this->setupParamInternal(name, param);
   }
 #endif  // CONFIG_UTILITIES_TRANSFORMATION_ENABLED
@@ -1230,7 +1233,7 @@ class Factory {
     std::string type_info = ss.str();
     if (!type_info.empty()) {
       type_info = " and constructor arguments '" +
-          type_info.substr(0, type_info.size() - 2) + "'";
+                  type_info.substr(0, type_info.size() - 2) + "'";
     } else {
       type_info = "";
     }
@@ -1263,7 +1266,7 @@ class Factory {
    public:
     using FactoryMethod = std::function<BaseT*(Args... args)>;
     using FactoryMethodRos =
-    std::function<BaseT*(const internal::ParamMap& params, Args... args)>;
+        std::function<BaseT*(const internal::ParamMap& params, Args... args)>;
 
     // Singleton access.
     static ModuleMap& instance() {
@@ -1388,7 +1391,7 @@ class FactoryRos : protected Factory {
     std::string type_info = ss.str();
     if (!type_info.empty()) {
       type_info = " and constructor arguments '" +
-          type_info.substr(0, type_info.size() - 2) + "'";
+                  type_info.substr(0, type_info.size() - 2) + "'";
     } else {
       type_info = "";
     }
@@ -1433,4 +1436,3 @@ class FactoryRos : protected Factory {
 }  // namespace config_utilities
 #endif  // CONFIG_UTILITIES_ROS_HPP_
 #endif  // CONFIG_UTILITIES_ROS_ENABLED
-
