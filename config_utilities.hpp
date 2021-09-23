@@ -829,11 +829,12 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
     // Check the param is set.
     std::map<std::string, T> values;
+    const std::string prefix = param_namespace_ + "/" + name + "/";
     for (const auto& v : *(meta_data_->params)) {
-      if (v.first.find(name + "/") != 0) {
+      if (v.first.find(prefix) != 0) {
         continue;
       }
-      std::string key = v.first.substr(name.length() + 1);
+      std::string key = v.first.substr(prefix.length());
 
       if (key.find('/') == std::string::npos) {
         T value;
