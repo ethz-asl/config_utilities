@@ -2,7 +2,7 @@
 AUTHOR:       Lukas Schmid <schmluk@mavt.ethz.ch>
 AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
 SOURCE:       https://github.com/ethz-asl/config_utilities
-VERSION:      1.1.4
+VERSION:      1.1.5
 LICENSE:      BSD-3-Clause
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
@@ -34,7 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 // Raises a redefined warning if different versions are used. v=MMmmPP.
-#define CONFIG_UTILITIES_VERSION 010104
+#define CONFIG_UTILITIES_VERSION 010105
 
 /**
  * Depending on which headers are available, ROS dependencies are included in
@@ -88,6 +88,7 @@ struct GlobalSettings {
   unsigned int default_print_width = 80;
   unsigned int default_print_indent = 30;
   unsigned int default_subconfig_indent = 3;
+  bool indicate_default_values = true;
 
   static GlobalSettings& instance() {
     static GlobalSettings settings;
@@ -197,9 +198,8 @@ inline bool xmlCast(XmlRpc::XmlRpcValue xml, T*) {
   return false;
 }
 
-// NOTE: the copy of the xml values is required for compatibility with ROS
-// Kinetic, since the cast to value type is a non-const operation.
-
+// NOTE(schmluk): the copy of the xml values is required for compatibility with
+// ROS Kinetic, since the cast to value type is a non-const operation.
 inline bool xmlCast(XmlRpc::XmlRpcValue xml, bool* param = nullptr) {
   switch (xml.getType()) {
     case XmlRpc::XmlRpcValue::Type::TypeBoolean: {
@@ -478,23 +478,16 @@ struct ConfigInternal : public ConfigInternalVerificator {
   }
 
   std::string toString() const {
-    meta_data_->messages = std::make_unique<std::vector<std::string>>();
-    meta_data_->merged_setup_already_used = true;
-    meta_data_->merged_setup_set_params = false;
-    meta_data_->merged_setup_currently_active = true;
-    // NOTE: setupParamsAndPrinting() does not modify 'this' in printing mode.
-    ((ConfigInternal*)this)->setupParamsAndPrinting();
-    printFields();
     std::string result =
-        internal::printCenter(name_, meta_data_->print_width, '=');
-    for (const std::string& msg : *(meta_data_->messages)) {
-      result.append("\n" + msg);
-    }
-    result.append("\n" + std::string(meta_data_->print_width, '='));
+        internal::printCenter(name_, meta_data_->print_width, '=') + "\n" +
+        toStringInternal(meta_data_->indent, meta_data_->print_width,
+                         meta_data_->print_indent) +
+        "\n" + std::string(meta_data_->print_width, '=');
     meta_data_->messages.reset(nullptr);
     return result;
   };
 
+ protected:
   // Implementable setup tool.
   virtual void initializeDependentVariableDefaults() {}
 
@@ -527,7 +520,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
   void setPrintWidth(int width) { meta_data_->print_width = width; }
   void setPrintIndent(int indent) { meta_data_->print_indent = indent; }
 
- protected:
   // Checking Tools.
   template <typename T>
   void checkParamGT(const T& param, const T& value,
@@ -618,13 +610,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
   // Printing Tools.
   template <typename T>
   void printField(const std::string& name, const T& field) const {
-    if (!meta_data_->messages) {
-      if (!meta_data_->merged_setup_currently_active) {
-        LOG(WARNING) << "'printField()' calls are only allowed within the "
-                        "'printFields()' method.";
-      }
-      return;
-    }
     if (isConfig(&field)) {
       printConfigInternal(name, (const internal::ConfigInternal*)&field);
     } else {
@@ -644,13 +629,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
 
   template <typename T>
   void printField(const std::string& name, const std::vector<T>& field) const {
-    if (!meta_data_->messages) {
-      if (!meta_data_->merged_setup_currently_active) {
-        LOG(WARNING) << "'printField()' calls are only allowed within the "
-                        "'printFields()' method.";
-      }
-      return;
-    }
     std::stringstream ss;
     ss << "[";
     size_t offset = 0;
@@ -666,13 +644,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
   template <typename T>
   void printField(const std::string& name,
                   const std::map<std::string, T>& field) const {
-    if (!meta_data_->messages) {
-      if (!meta_data_->merged_setup_currently_active) {
-        LOG(WARNING) << "'printField()' calls are only allowed within the "
-                        "'printFields()' method.";
-      }
-      return;
-    }
     std::stringstream ss;
     ss << "{";
     size_t offset = 0;
@@ -687,8 +658,11 @@ struct ConfigInternal : public ConfigInternalVerificator {
 
   void printText(const std::string& text) const {
     if (!meta_data_->messages) {
-      LOG(WARNING) << "'printText()' calls are only allowed within the "
-                      "'printFields()' method.";
+      if (!meta_data_->merged_setup_currently_active &&
+          !meta_data_->use_printing_to_get_values) {
+        LOG(WARNING) << "'printText()' calls are only allowed within the "
+                        "'printFields()' method.";
+      }
       return;
     }
     meta_data_->messages->emplace_back(
@@ -696,9 +670,55 @@ struct ConfigInternal : public ConfigInternalVerificator {
   }
 
  private:
+  friend std::unordered_map<std::string, std::string> getValues(
+      const ConfigInternal& config);
+  friend std::string toString(const ConfigInternal& config);
+
+  std::unordered_map<std::string, std::string> getValues() const {
+    // This is only used within printing, so meta data exists.
+    meta_data_->default_values =
+        std::make_unique<std::unordered_map<std::string, std::string>>();
+    meta_data_->use_printing_to_get_values = true;
+    meta_data_->merged_setup_already_used = true;
+    meta_data_->merged_setup_set_params = false;
+    meta_data_->merged_setup_currently_active = true;
+    // NOTE(schmluk): setupParamsAndPrinting() does not modify 'this' in
+    // printing mode.
+    ((ConfigInternal*)this)->setupParamsAndPrinting();
+    printFields();
+    std::unordered_map<std::string, std::string> result =
+        *(meta_data_->default_values);
+    meta_data_->default_values.reset(nullptr);
+    meta_data_->use_printing_to_get_values = false;
+    return result;
+  }
+
   void printFieldInternal(const std::string& name,
                           const std::string& field) const {
+    // Use these calls to extract the string values of all fields.
+    if (meta_data_->use_printing_to_get_values) {
+      meta_data_->default_values->insert(std::make_pair(name, field));
+      return;
+    }
+
+    // Check meta-data is valid.
+    if (!meta_data_->messages) {
+      if (!meta_data_->merged_setup_currently_active) {
+        LOG(WARNING) << "'printField()' calls are only allowed within the "
+                        "'printFields()' method.";
+      }
+      return;
+    }
+
     std::string f = field;
+    if (meta_data_->default_values) {
+      auto it = meta_data_->default_values->find(name);
+      if (it != meta_data_->default_values->end()) {
+        if (it->second == field) {
+          f.append(" (default)");
+        }
+      }
+    }
 
     // The header is the field name.
     std::string header = std::string(meta_data_->indent, ' ') + name + ": ";
@@ -758,6 +778,22 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->messages = std::make_unique<std::vector<std::string>>();
     meta_data_->merged_setup_already_used = true;
     meta_data_->merged_setup_set_params = false;
+
+    // Create the default values if required.
+    if (GlobalSettings::instance().indicate_default_values) {
+      auto defaults = getDefaultConfig();
+      defaults->initializeDependentVariableDefaults();
+      meta_data_->default_values =
+          std::make_unique<std::unordered_map<std::string, std::string>>(
+              defaults->getValues());
+      meta_data_->use_printing_to_get_values = true;
+      // NOTE: setupParamsAndPrinting() does not modify 'this' in printing mode.
+      ((ConfigInternal*)this)->setupParamsAndPrinting();
+      printFields();
+      meta_data_->merged_setup_already_used = true;
+      meta_data_->use_printing_to_get_values = false;
+    }
+
     // NOTE: setupParamsAndPrinting() does not modify 'this' in printing mode.
     ((ConfigInternal*)this)->setupParamsAndPrinting();
     printFields();
@@ -769,6 +805,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
       result = result.substr(1);
     }
     meta_data_->messages.reset(nullptr);
+    meta_data_->default_values.reset(nullptr);
     meta_data_->print_width = print_width_prev;
     meta_data_->print_indent = print_indent_prev;
     meta_data_->indent = indent_prev;
@@ -1136,10 +1173,15 @@ struct ConfigInternal : public ConfigInternalVerificator {
   friend void setupConfigFromParamMap(const internal::ParamMap& params,
                                       ConfigInternal* config);
 
+  virtual std::unique_ptr<internal::ConfigInternal> getDefaultConfig()
+      const = 0;
+
   struct MetaData {
-    // tools
+    // temporary tools
     std::unique_ptr<ConfigChecker> checker;
     std::unique_ptr<std::vector<std::string>> messages;
+    std::unique_ptr<std::unordered_map<std::string, std::string>>
+        default_values;
     const internal::ParamMap* params = nullptr;
 
     // settings and variables
@@ -1150,6 +1192,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     bool merged_setup_already_used = false;
     bool merged_setup_set_params = false;
     bool merged_setup_currently_active = false;
+    bool use_printing_to_get_values = false;
 
     MetaData() = default;
     MetaData(const MetaData& other) {
@@ -1178,7 +1221,6 @@ inline void setupConfigFromParamMap(const ParamMap& params,
   CHECK_NOTNULL(config);
   config->setupFromParamMap(params);
 }
-
 }  // namespace internal
 
 /**
@@ -1192,15 +1234,20 @@ struct Config : public internal::ConfigInternal {
 
   ConfigT checkValid() const {
     // Returns a copy of the config in the const case.
-    CHECK(isValid(true));
     ConfigT result(*static_cast<const ConfigT*>(this));
-    return result;
+    return result.checkValid();
   }
 
   ConfigT& checkValid() {
     // Returns a mutable reference.
+    initializeDependentVariableDefaults();
     CHECK(isValid(true));
     return *static_cast<ConfigT*>(this);
+  }
+
+ private:
+  std::unique_ptr<internal::ConfigInternal> getDefaultConfig() const override {
+    return std::make_unique<ConfigT>();
   }
 };
 
