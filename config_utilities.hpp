@@ -804,7 +804,11 @@ struct ConfigInternal : public ConfigInternalVerificator {
   template <typename T>
   void printField(const std::string& name, const T& field) const {
     if (isConfig(&field)) {
-      printConfigInternal(name, (const internal::ConfigInternal*)&field);
+      if (!meta_data_->use_printing_to_get_values) {
+        // The default values only apply for non-config fields, as these will be
+        // managed internally when printing the sub-config.
+        printConfigInternal(name, (const internal::ConfigInternal*)&field);
+      }
     } else {
       std::stringstream ss;
       ss << field;
@@ -1409,7 +1413,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
   std::string name_;
   std::string param_namespace_ = "~";
   std::unique_ptr<MetaData> meta_data_;
-};
+};  // namespace internal
 
 // This is a dummy operator, configs provide toString().
 inline std::ostream& operator<<(std::ostream& os, const ConfigInternal&) {
