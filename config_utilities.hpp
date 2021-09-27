@@ -2,7 +2,7 @@
 AUTHOR:       Lukas Schmid <schmluk@mavt.ethz.ch>
 AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
 SOURCE:       https://github.com/ethz-asl/config_utilities
-VERSION:      1.1.6
+VERSION:      1.1.7
 LICENSE:      BSD-3-Clause
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
@@ -34,7 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 // Raises a redefined warning if different versions are used. v=MMmmPP.
-#define CONFIG_UTILITIES_VERSION 010106
+#define CONFIG_UTILITIES_VERSION 010107
 
 /**
  * Depending on which headers are available, ROS dependencies are included in
@@ -104,6 +104,9 @@ struct GlobalSettings {
 
   // If true, indicate which values are identical to the default.
   bool indicate_default_values = true;
+
+  // If true, also display the unit of each parameter where provided.
+  bool indicate_units = true;
 
  private:
   GlobalSettings() = default;
@@ -800,9 +803,11 @@ struct ConfigInternal : public ConfigInternalVerificator {
    * @tparam T Type of the parameter to be printed.
    * @param name Name of the parameter to be displayed.
    * @param field Value of the parameter to be retrieved.
+   * @param unit Unit of the parameter. If not set nothing will be displayed.
    */
   template <typename T>
-  void printField(const std::string& name, const T& field) const {
+  void printField(const std::string& name, const T& field,
+                  const std::string& unit = "") const {
     if (isConfig(&field)) {
       if (!meta_data_->use_printing_to_get_values) {
         // The default values only apply for non-config fields, as these will be
@@ -812,20 +817,22 @@ struct ConfigInternal : public ConfigInternalVerificator {
     } else {
       std::stringstream ss;
       ss << field;
-      printFieldInternal(name, ss.str());
+      printFieldInternal(name, ss.str(), unit);
     }
   }
 
-  void printField(const std::string& name, const bool& field) const {
+  void printField(const std::string& name, const bool& field,
+                  const std::string& unit = "") const {
     std::string val = "False";
     if (field) {
       val = "True";
     }
-    printFieldInternal(name, val);
+    printFieldInternal(name, val, unit);
   }
 
   template <typename T>
-  void printField(const std::string& name, const std::vector<T>& field) const {
+  void printField(const std::string& name, const std::vector<T>& field,
+                  const std::string& unit = "") const {
     std::stringstream ss;
     ss << "[";
     size_t offset = 0;
@@ -835,12 +842,13 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
     std::string s = ss.str();
     s = s.substr(0, s.length() - offset).append("]");
-    printFieldInternal(name, s);
+    printFieldInternal(name, s, unit);
   }
 
   template <typename T>
   void printField(const std::string& name,
-                  const std::map<std::string, T>& field) const {
+                  const std::map<std::string, T>& field,
+                  const std::string& unit = "") const {
     std::stringstream ss;
     ss << "{";
     size_t offset = 0;
@@ -850,7 +858,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
     std::string s = ss.str();
     s = s.substr(0, s.length() - offset).append("}");
-    printFieldInternal(name, s);
+    printFieldInternal(name, s, unit);
   }
 
   /**
@@ -894,8 +902,8 @@ struct ConfigInternal : public ConfigInternalVerificator {
     return result;
   }
 
-  void printFieldInternal(const std::string& name,
-                          const std::string& field) const {
+  void printFieldInternal(const std::string& name, const std::string& field,
+                          const std::string& unit = "") const {
     // Use these calls to extract the string values of all fields.
     if (meta_data_->use_printing_to_get_values) {
       meta_data_->default_values->insert(std::make_pair(name, field));
@@ -922,7 +930,12 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
 
     // The header is the field name.
-    std::string header = std::string(meta_data_->indent, ' ') + name + ": ";
+    std::string header = std::string(meta_data_->indent, ' ') + name;
+    if (GlobalSettings::instance().indicate_units && !unit.empty()) {
+      header += "[" + unit + "]: ";
+    } else {
+      header += ": ";
+    }
     while (header.length() > GlobalSettings::instance().print_width) {
       // Linebreaks for too long lines.
       meta_data_->messages->emplace_back(
@@ -1083,11 +1096,12 @@ struct ConfigInternal : public ConfigInternalVerificator {
   }
 
   template <typename T>
-  void setupParamInternal(const std::string& name, T* param) {
+  void setupParamInternal(const std::string& name, T* param,
+                          const std::string& unit) {
     if (meta_data_->merged_setup_set_params) {
       rosParam(name, param);
     } else {
-      printField(name, *param);
+      printField(name, *param, unit);
     }
   }
 
@@ -1230,70 +1244,94 @@ struct ConfigInternal : public ConfigInternalVerificator {
    *
    * @param name Name of the parameter to be retrieved and displayed.
    * @param param Value to be stored and read.
+   * @param unit Unit of the parameter displayed when printing. By default
+   * nothing will be displayed.
    */
-  void setupParam(const std::string& name, int* param) {
-    this->setupParamInternal(name, param);
+  void setupParam(const std::string& name, int* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
   }
 
-  void setupParam(const std::string& name, float* param) {
-    this->setupParamInternal(name, param);
+  void setupParam(const std::string& name, float* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
   }
 
-  void setupParam(const std::string& name, double* param) {
-    this->setupParamInternal(name, param);
+  void setupParam(const std::string& name, double* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
   }
 
-  void setupParam(const std::string& name, bool* param) {
-    this->setupParamInternal(name, param);
+  void setupParam(const std::string& name, bool* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
   }
 
-  void setupParam(const std::string& name, std::string* param) {
-    this->setupParamInternal(name, param);
+  void setupParam(const std::string& name, std::string* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
   }
 
-  void setupParam(const std::string& name, std::vector<int>* param) {
-    this->setupParamInternal(name, param);
+  void setupParam(const std::string& name, std::vector<int>* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
   }
 
-  void setupParam(const std::string& name, std::vector<double>* param) {
-    this->setupParamInternal(name, param);
+  void setupParam(const std::string& name, std::vector<double>* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
   }
 
-  void setupParam(const std::string& name, std::vector<float>* param) {
-    this->setupParamInternal(name, param);
+  void setupParam(const std::string& name, std::vector<float>* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
   }
 
-  void setupParam(const std::string& name, std::vector<bool>* param) {
-    this->setupParamInternal(name, param);
+  void setupParam(const std::string& name, std::vector<bool>* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
   }
 
-  void setupParam(const std::string& name, std::vector<std::string>* param) {
-    this->setupParamInternal(name, param);
+  void setupParam(const std::string& name, std::vector<std::string>* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
   }
 
-  void setupParam(const std::string& name, std::map<std::string, int>* param) {
-    this->setupParamInternal(name, param);
+  void setupParam(const std::string& name, std::map<std::string, int>* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
+  }
+
+  void setupParam(const std::string& name, std::map<std::string, double>* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
+  }
+
+  void setupParam(const std::string& name, std::map<std::string, float>* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
+  }
+
+  void setupParam(const std::string& name, std::map<std::string, bool>* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
   }
 
   void setupParam(const std::string& name,
-                  std::map<std::string, double>* param) {
-    this->setupParamInternal(name, param);
+                  std::map<std::string, std::string>* param,
+                  const std::string& unit = "") {
+    this->setupParamInternal(name, param, unit);
   }
-
-  void setupParam(const std::string& name,
-                  std::map<std::string, float>* param) {
-    this->setupParamInternal(name, param);
-  }
-
-  void setupParam(const std::string& name, std::map<std::string, bool>* param) {
-    this->setupParamInternal(name, param);
-  }
-
-  void setupParam(const std::string& name,
-                  std::map<std::string, std::string>* param) {
-    this->setupParamInternal(name, param);
-  }
-
+  /**
+   * @brief Set the name and storage variable for a parameter that is itself a
+   * config_utilities config. These will be used for both the fromRosParam
+   * parameter retrieval and printField parameter printing.
+   *
+   * @param name Name of the parameter to be retrieved and displayed.
+   * @param param Value to be stored and read.
+   * @param sub_namespace If set, all values for the child config will be
+   * retrieved from the given sub-namespace.
+   */
   void setupParam(const std::string& name, ConfigInternal* config,
                   const std::string& sub_namespace = "") {
     if (meta_data_->merged_setup_set_params) {
