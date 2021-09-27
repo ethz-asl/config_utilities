@@ -2,7 +2,7 @@
 AUTHOR:       Lukas Schmid <schmluk@mavt.ethz.ch>
 AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
 SOURCE:       https://github.com/ethz-asl/config_utilities
-VERSION:      1.1.5
+VERSION:      1.1.6
 LICENSE:      BSD-3-Clause
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
@@ -34,7 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 // Raises a redefined warning if different versions are used. v=MMmmPP.
-#define CONFIG_UTILITIES_VERSION 010105
+#define CONFIG_UTILITIES_VERSION 010106
 
 /**
  * Depending on which headers are available, ROS dependencies are included in
@@ -80,20 +80,30 @@ namespace config_utilities {
  * ==================== Settings ====================
  */
 namespace internal {
+/**
+ * @brief Global Settings for how config_utilities based configs behave. These
+ * can be dynamically set and changed throughout a project.
+ */
 struct GlobalSettings {
   GlobalSettings(const GlobalSettings& other) = delete;
   GlobalSettings& operator=(const GlobalSettings& other) = delete;
-
-  // Settings
-  unsigned int default_print_width = 80;
-  unsigned int default_print_indent = 30;
-  unsigned int default_subconfig_indent = 3;
-  bool indicate_default_values = true;
-
   static GlobalSettings& instance() {
     static GlobalSettings settings;
     return settings;
   }
+
+  // Printing Settings.
+  // Width of the 'toString()' output of configs.
+  unsigned int print_width = 80;
+
+  // Indent after which values are printed.
+  unsigned int print_indent = 30;
+
+  // Indent for nested configs.
+  unsigned int subconfig_indent = 3;
+
+  // If true, indicate which values are identical to the default.
+  bool indicate_default_values = true;
 
  private:
   GlobalSettings() = default;
@@ -109,8 +119,10 @@ inline internal::GlobalSettings& GlobalSettings() {
  * ==================== Utilities ====================
  */
 
-// Add required command line arguments if needed. Keeps memory over the scope
-// of existence for this class.
+/**
+ * @brief Add required command line arguments if needed. Keeps memory over the
+scope of existence for this class.
+*/
 class RequiredArguments {
  public:
   explicit RequiredArguments(int* argc, char*** argv,
@@ -338,13 +350,24 @@ struct ConfigInternal;
  * ==================== ConfigChecker ====================
  */
 
-// Utility tool to make checking configs easier and more readable.
+/**
+ * @brief Utility tool to make checking configs easier and more readable.
+ * Instantiate the checker, then execute all checks, and get a summary of all
+ * checks eventually.
+ */
 class ConfigChecker {
  public:
   explicit ConfigChecker(std::string module_name)
       : name_(std::move(module_name)),
-        print_width_(GlobalSettings().default_print_width) {}
+        print_width_(GlobalSettings().print_width) {}
 
+  /**
+   * @brief Return whether the config checker is valid, i.e. whether none of the
+   * executed checks failed.
+   *
+   * @param print_warnings If true, print the warnings to console. Default:
+   * false.
+   */
   bool isValid(bool print_warnings = false) const {
     if (warnings_.empty()) {
       return true;
@@ -370,10 +393,25 @@ class ConfigChecker {
     return false;
   }
 
+  /**
+   * @brief Enforce that the config is valid. This will terminate the program if
+   * invalid.
+   */
   void checkValid() const { CHECK(isValid(true)); }
 
+  /**
+   * @brief Undoes all previously executed checks.
+   */
   void reset() { warnings_.clear(); }
 
+  /**
+   * @brief Execute a greater than (GT) check, i.e. param > value.
+   *
+   * @tparam T type of the parameter to be checked.
+   * @param param Value of the parameter to be compared.
+   * @param value Value of the reference to compare to.
+   * @param name Name of the parameter to be reported in the error summary.
+   */
   template <typename T>
   void checkGT(const T& param, const T& value, const std::string& name) {
     if (param <= value) {
@@ -384,6 +422,14 @@ class ConfigChecker {
     }
   }
 
+  /**
+   * @brief Execute a greater equal (GE) check, i.e. param >= value.
+   *
+   * @tparam T type of the parameter to be checked.
+   * @param param Value of the parameter to be compared.
+   * @param value Value of the reference to compare to.
+   * @param name Name of the parameter to be reported in the error summary.
+   */
   template <typename T>
   void checkGE(const T& param, const T& value, const std::string& name) {
     if (param < value) {
@@ -394,6 +440,14 @@ class ConfigChecker {
     }
   }
 
+  /**
+   * @brief Execute a less than (LT) check, i.e. param < value.
+   *
+   * @tparam T type of the parameter to be checked.
+   * @param param Value of the parameter to be compared.
+   * @param value Value of the reference to compare to.
+   * @param name Name of the parameter to be reported in the error summary.
+   */
   template <typename T>
   void checkLT(const T& param, const T& value, const std::string& name) {
     if (param >= value) {
@@ -404,6 +458,14 @@ class ConfigChecker {
     }
   }
 
+  /**
+   * @brief Execute a less equal (LE) check, i.e. param <= value.
+   *
+   * @tparam T type of the parameter to be checked.
+   * @param param Value of the parameter to be compared.
+   * @param value Value of the reference to compare to.
+   * @param name Name of the parameter to be reported in the error summary.
+   */
   template <typename T>
   void checkLE(const T& param, const T& value, const std::string& name) {
     if (param > value) {
@@ -414,6 +476,14 @@ class ConfigChecker {
     }
   }
 
+  /**
+   * @brief Execute an equal (Eq) check, i.e. param == value.
+   *
+   * @tparam T type of the parameter to be checked.
+   * @param param Value of the parameter to be compared.
+   * @param value Value of the reference to compare to.
+   * @param name Name of the parameter to be reported in the error summary.
+   */
   template <typename T>
   void checkEq(const T& param, const T& value, const std::string& name) {
     if (param != value) {
@@ -424,6 +494,14 @@ class ConfigChecker {
     }
   }
 
+  /**
+   * @brief Execute a not equal (NE) check, i.e. param != value.
+   *
+   * @tparam T type of the parameter to be checked.
+   * @param param Value of the parameter to be compared.
+   * @param value Value of the reference to compare to.
+   * @param name Name of the parameter to be reported in the error summary.
+   */
   template <typename T>
   void checkNE(const T& param, const T& value, const std::string& name) {
     if (param == value) {
@@ -434,12 +512,23 @@ class ConfigChecker {
     }
   }
 
+  /**
+   * @brief Execute a condition check, i.e. whether condition is true.
+   *
+   * @param condition condition to be checked.
+   * @param warning Message to be reported in the error summary.
+   */
   void checkCond(bool condition, const std::string& warning) {
     if (!condition) {
       warnings_.emplace_back(warning);
     }
   }
 
+  /**
+   * @brief Set the printing width of the error summary.
+   *
+   * @param width New width.
+   */
   void setPrintWidth(int width) { print_width_ = width; }
 
  private:
@@ -467,9 +556,18 @@ struct ConfigInternal : public ConfigInternalVerificator {
     return *this;
   }
 
+  // Public interaction with configs.
+
+  /**
+   * @brief Evaluates whether any of the validity conditions are violated.
+   * Returns true if the config is valid.
+   *
+   * @param print_warnings True: print invalid parameters to console. Default:
+   * false.
+   */
   bool isValid(bool print_warnings = false) const {
     meta_data_->checker = std::make_unique<ConfigChecker>(name_);
-    meta_data_->checker->setPrintWidth(meta_data_->print_width);
+    meta_data_->checker->setPrintWidth(GlobalSettings::instance().print_width);
     meta_data_->print_warnings = print_warnings;
     checkParams();
     bool result = meta_data_->checker->isValid(print_warnings);
@@ -477,22 +575,39 @@ struct ConfigInternal : public ConfigInternalVerificator {
     return result;
   }
 
+  /**
+   * @brief Produces a printable summary of the config as string, containing its
+   * name and all parameter values.
+   */
   std::string toString() const {
     std::string result =
-        internal::printCenter(name_, meta_data_->print_width, '=') + "\n" +
-        toStringInternal(meta_data_->indent, meta_data_->print_width,
-                         meta_data_->print_indent) +
-        "\n" + std::string(meta_data_->print_width, '=');
+        internal::printCenter(name_, GlobalSettings::instance().print_width,
+                              '=') +
+        "\n" + toStringInternal(meta_data_->indent) + "\n" +
+        std::string(GlobalSettings::instance().print_width, '=');
     meta_data_->messages.reset(nullptr);
     return result;
   };
 
  protected:
   // Implementable setup tool.
+  /**
+   * @brief This function is called when 'checkValid()' is called or after a
+   * config is created from ROS or similar. Implement this to initialize default
+   * parameters that depend on other values.
+   */
   virtual void initializeDependentVariableDefaults() {}
 
+  /**
+   * @brief This function is called when validity is checked. Implement this
+   * function by adding all checks using the protected checkParamXX functions.
+   */
   virtual void checkParams() const {}
 
+  /**
+   * @brief This function is called when the config is printed to string.
+   * Implement this function by adding all printField functions.
+   */
   virtual void printFields() const {
     if (!meta_data_->merged_setup_already_used) {
       meta_data_->messages->emplace_back(
@@ -502,6 +617,10 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
   }
 
+  /**
+   * @brief This function is called when a config is created from ROS param or
+   * similar. Implement this function by adding all rosParam functions.
+   */
   virtual void fromRosParam() {
     if (!meta_data_->merged_setup_already_used) {
       LOG(WARNING) << "fromRosParam() is not implemented for '" << name_
@@ -509,6 +628,10 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
   }
 
+  /**
+   * @brief This function combines printFields and fromRosParma to avoid code
+   * duplication. Implement this function by ading all setupParam functions.
+   */
   virtual void setupParamsAndPrinting() {
     // If this is overwritten this won't be set and will precede fromRosParam
     // and printField.
@@ -516,11 +639,21 @@ struct ConfigInternal : public ConfigInternalVerificator {
   }
 
   // General Tools.
+  /**
+   * @brief Set the name of the config to be displayed in checks and prints.
+   * Default is the typeid-name of the object.
+   */
   void setConfigName(const std::string& name) { name_ = name; }
-  void setPrintWidth(int width) { meta_data_->print_width = width; }
-  void setPrintIndent(int indent) { meta_data_->print_indent = indent; }
 
   // Checking Tools.
+  /**
+   * @brief Execute a greater than (GT) check, i.e. param > value.
+   *
+   * @tparam T type of the parameter to be checked.
+   * @param param Value of the parameter to be compared.
+   * @param value Value of the reference to compare to.
+   * @param name Name of the parameter to be reported in the error summary.
+   */
   template <typename T>
   void checkParamGT(const T& param, const T& value,
                     const std::string& name) const {
@@ -532,6 +665,14 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->checker->checkGT(param, value, name);
   }
 
+  /**
+   * @brief Execute a greater equal (GE) check, i.e. param >= value.
+   *
+   * @tparam T type of the parameter to be checked.
+   * @param param Value of the parameter to be compared.
+   * @param value Value of the reference to compare to.
+   * @param name Name of the parameter to be reported in the error summary.
+   */
   template <typename T>
   void checkParamGE(const T& param, const T& value,
                     const std::string& name) const {
@@ -543,6 +684,14 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->checker->checkGE(param, value, name);
   }
 
+  /**
+   * @brief Execute a less than (LT) check, i.e. param < value.
+   *
+   * @tparam T type of the parameter to be checked.
+   * @param param Value of the parameter to be compared.
+   * @param value Value of the reference to compare to.
+   * @param name Name of the parameter to be reported in the error summary.
+   */
   template <typename T>
   void checkParamLT(const T& param, const T& value,
                     const std::string& name) const {
@@ -554,6 +703,14 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->checker->checkLT(param, value, name);
   }
 
+  /**
+   * @brief Execute a less equal (LE) check, i.e. param <= value.
+   *
+   * @tparam T type of the parameter to be checked.
+   * @param param Value of the parameter to be compared.
+   * @param value Value of the reference to compare to.
+   * @param name Name of the parameter to be reported in the error summary.
+   */
   template <typename T>
   void checkParamLE(const T& param, const T& value,
                     const std::string& name) const {
@@ -565,6 +722,14 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->checker->checkLE(param, value, name);
   }
 
+  /**
+   * @brief Execute a equal (Eq) check, i.e. param == value.
+   *
+   * @tparam T type of the parameter to be checked.
+   * @param param Value of the parameter to be compared.
+   * @param value Value of the reference to compare to.
+   * @param name Name of the parameter to be reported in the error summary.
+   */
   template <typename T>
   void checkParamEq(const T& param, const T& value,
                     const std::string& name) const {
@@ -576,6 +741,14 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->checker->checkEq(param, value, name);
   }
 
+  /**
+   * @brief Execute a not equal (NE) check, i.e. param != value.
+   *
+   * @tparam T type of the parameter to be checked.
+   * @param param Value of the parameter to be compared.
+   * @param value Value of the reference to compare to.
+   * @param name Name of the parameter to be reported in the error summary.
+   */
   template <typename T>
   void checkParamNE(const T& param, const T& value,
                     const std::string& name) const {
@@ -587,6 +760,12 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->checker->checkNE(param, value, name);
   }
 
+  /**
+   * @brief Execute a condition check, i.e. whether condition is true.
+   *
+   * @param condition condition to be checked.
+   * @param warning Message to be reported in the error summary.
+   */
   void checkParamCond(bool condition, const std::string& warning) const {
     if (!meta_data_->checker) {
       LOG(WARNING) << "'checkParamCond()' calls are only allowed within the "
@@ -595,6 +774,12 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
     meta_data_->checker->checkCond(condition, warning);
   }
+
+  /**
+   * @brief Execute a config check, i.e. whether config is valid.
+   *
+   * @param config Config to be validated.
+   */
   void checkParamConfig(const internal::ConfigInternal& config) const {
     if (!meta_data_->checker) {
       LOG(WARNING) << "'checkParamConfig()' calls are only allowed within the "
@@ -608,6 +793,14 @@ struct ConfigInternal : public ConfigInternalVerificator {
   }
 
   // Printing Tools.
+  /**
+   * @brief Print this parameter in the config toString summary. The parameter
+   * type T is required to implement the << operator.
+   *
+   * @tparam T Type of the parameter to be printed.
+   * @param name Name of the parameter to be displayed.
+   * @param field Value of the parameter to be retrieved.
+   */
   template <typename T>
   void printField(const std::string& name, const T& field) const {
     if (isConfig(&field)) {
@@ -656,6 +849,11 @@ struct ConfigInternal : public ConfigInternalVerificator {
     printFieldInternal(name, s);
   }
 
+  /**
+   * @brief Print this text un-indented in config toString summaries.
+   *
+   * @param text Text to be displayed.
+   */
   void printText(const std::string& text) const {
     if (!meta_data_->messages) {
       if (!meta_data_->merged_setup_currently_active &&
@@ -672,7 +870,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
  private:
   friend std::unordered_map<std::string, std::string> getValues(
       const ConfigInternal& config);
-  friend std::string toString(const ConfigInternal& config);
 
   std::unordered_map<std::string, std::string> getValues() const {
     // This is only used within printing, so meta data exists.
@@ -722,35 +919,39 @@ struct ConfigInternal : public ConfigInternalVerificator {
 
     // The header is the field name.
     std::string header = std::string(meta_data_->indent, ' ') + name + ": ";
-    while (header.length() > meta_data_->print_width) {
+    while (header.length() > GlobalSettings::instance().print_width) {
       // Linebreaks for too long lines.
       meta_data_->messages->emplace_back(
-          header.substr(0, meta_data_->print_width));
-      header = header.substr(meta_data_->print_width);
+          header.substr(0, GlobalSettings::instance().print_width));
+      header = header.substr(GlobalSettings::instance().print_width);
     }
-    if (header.length() < meta_data_->print_indent) {
-      header.append(
-          std::string(meta_data_->print_indent - header.length(), ' '));
-    } else if (meta_data_->print_width - header.length() < f.length()) {
+    if (header.length() < GlobalSettings::instance().print_indent) {
+      header.append(std::string(
+          GlobalSettings::instance().print_indent - header.length(), ' '));
+    } else if (GlobalSettings::instance().print_width - header.length() <
+               f.length()) {
       meta_data_->messages->emplace_back(header);
-      header = std::string(meta_data_->print_indent, ' ');
+      header = std::string(GlobalSettings::instance().print_indent, ' ');
     }
 
     // First line could be shorter.
-    int length = meta_data_->print_width - header.length();
+    int length = GlobalSettings::instance().print_width - header.length();
     if (f.length() > length) {
       meta_data_->messages->emplace_back(header + f.substr(0, length));
       f = f.substr(length);
 
       // Fill the rest.
-      length = meta_data_->print_width - meta_data_->print_indent;
+      length = GlobalSettings::instance().print_width -
+               GlobalSettings::instance().print_indent;
       while (f.length() > length) {
         meta_data_->messages->emplace_back(
-            std::string(meta_data_->print_indent, ' ') + f.substr(0, length));
+            std::string(GlobalSettings::instance().print_indent, ' ') +
+            f.substr(0, length));
         f = f.substr(length);
       }
       meta_data_->messages->emplace_back(
-          std::string(meta_data_->print_indent, ' ') + f.substr(0, length));
+          std::string(GlobalSettings::instance().print_indent, ' ') +
+          f.substr(0, length));
     } else {
       meta_data_->messages->emplace_back(header.append(f));
     }
@@ -761,18 +962,11 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->messages->emplace_back(std::string(meta_data_->indent, ' ') +
                                        name + ":");
     meta_data_->messages->emplace_back(field->toStringInternal(
-        meta_data_->indent +
-            GlobalSettings::instance().default_subconfig_indent,
-        meta_data_->print_width, meta_data_->print_indent));
+        meta_data_->indent + GlobalSettings::instance().subconfig_indent));
   }
 
-  std::string toStringInternal(int indent, int print_width,
-                               int print_indent) const {
-    int print_width_prev = meta_data_->print_width;
-    int print_indent_prev = meta_data_->print_indent;
-    int indent_prev = meta_data_->indent;
-    meta_data_->print_width = print_width;
-    meta_data_->print_indent = print_indent;
+  std::string toStringInternal(int indent) const {
+    const int indent_prev = meta_data_->indent;
     meta_data_->indent = indent;
 
     meta_data_->messages = std::make_unique<std::vector<std::string>>();
@@ -806,8 +1000,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
     meta_data_->messages.reset(nullptr);
     meta_data_->default_values.reset(nullptr);
-    meta_data_->print_width = print_width_prev;
-    meta_data_->print_indent = print_indent_prev;
     meta_data_->indent = indent_prev;
     return result;
   };
@@ -898,6 +1090,12 @@ struct ConfigInternal : public ConfigInternalVerificator {
  protected:
   // These are explicitly overloaded for agreement with ROS-params and to
   // prevent messy compilation errors.
+  /**
+   * @brief Retrieve a parameter from ROS or similar.
+   *
+   * @param name Name of the parameter in the ROS-parameter server.
+   * @param param Variable to store the retrieved value in.
+   */
   void rosParam(const std::string& name, int* param) {
     this->rosParamInternal(name, param);
   }
@@ -1005,6 +1203,10 @@ struct ConfigInternal : public ConfigInternalVerificator {
     setupConfigFromParamMap(params, config);
   }
 
+  /**
+   * @brief Extract the name space that was used when retrieving parameter
+   * values.
+   */
   std::string rosParamNameSpace() {
     // Check scope and param map are valid.
     if (!meta_data_->params) {
@@ -1017,6 +1219,14 @@ struct ConfigInternal : public ConfigInternalVerificator {
     return param_namespace_;
   }
 
+  /**
+   * @brief Set the name and storage variable for a parameter. These will be
+   * used for both the fromRosParam parameter retrieval and printField parameter
+   * printing.
+   *
+   * @param name Name of the parameter to be retrieved and displayed.
+   * @param param Value to be stored and read.
+   */
   void setupParam(const std::string& name, int* param) {
     this->setupParamInternal(name, param);
   }
@@ -1185,8 +1395,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
     const internal::ParamMap* params = nullptr;
 
     // settings and variables
-    int print_width = GlobalSettings::instance().default_print_width;
-    int print_indent = GlobalSettings::instance().default_print_indent;
     int indent = 0;  // Only used for nested printing.
     bool print_warnings = false;
     bool merged_setup_already_used = false;
@@ -1195,11 +1403,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     bool use_printing_to_get_values = false;
 
     MetaData() = default;
-    MetaData(const MetaData& other) {
-      print_width = other.print_width;
-      print_indent = other.print_indent;
-      indent = other.indent;
-    }
+    MetaData(const MetaData& other) { indent = other.indent; }
   };
 
   std::string name_;
@@ -1226,18 +1430,37 @@ inline void setupConfigFromParamMap(const ParamMap& params,
 /**
  * ==================== Config ====================
  */
+/**
+ * @brief Base class for configs to inherit from. To define a custom config, it
+ * needs to template itself,
+ * i.e. class MyConfig : public config_utilities::Config<MyConfig>
+ */
 template <typename ConfigT>
 struct Config : public internal::ConfigInternal {
  public:
   // Construction.
   Config() : ConfigInternal(typeid(ConfigT).name()) {}
 
+  /**
+   * @brief Enforce that a config is valid. This will terminate the program if
+   * constraints are violated. Runs initializeDependentVariableDefaults() before
+   * checking.
+   *
+   * @return ConfigT Copy of the validated config.
+   */
   ConfigT checkValid() const {
     // Returns a copy of the config in the const case.
     ConfigT result(*static_cast<const ConfigT*>(this));
     return result.checkValid();
   }
 
+  /**
+   * @brief Enforce that a config is valid. This will terminate the program if
+   * constraints are violated. Runs initializeDependentVariableDefaults() before
+   * checking.
+   *
+   * @return ConfigT The validated config.
+   */
   ConfigT& checkValid() {
     // Returns a mutable reference.
     initializeDependentVariableDefaults();
@@ -1256,7 +1479,17 @@ struct Config : public internal::ConfigInternal {
  */
 class Factory {
  public:
-  // Registration.
+  /**
+   * @brief Allocate these structs statically do add entries to the factory for
+   * run-time creation.
+   *
+   * @tparam BaseT Type of the base class to be registered. The base classes are
+   * queried for creation.
+   * @tparam DerivedT Type of the derived class to register.
+   * @tparam Args Other constructor arguments. Notice that each unique set of
+   * constructor arguments will result in a different base-entry in the factory.
+   * @param type String identifier to look up and to create this derived type.
+   */
   template <class BaseT, class DerivedT, typename... Args>
   struct Registration {
     explicit Registration(const std::string& type) {
@@ -1264,6 +1497,19 @@ class Factory {
     }
   };
 
+  /**
+   * @brief Allocate these structs statically do add entries to the ROS-factory
+   * for run-time creation.
+   *
+   * @tparam BaseT Type of the base class to be registered. The base classes are
+   * queried for creation.
+   * @tparam DerivedT Type of the derived class to register.
+   * @tparam Args Other constructor arguments. The first constructor argument
+   * for all derived classes is required to be a <typename DerivedT::Config> and
+   * not listed in the arguments. Notice that each unique set of constructor
+   * arguments will result in a different base-entry in the factory.
+   * @param type String identifier to look up and to create this derived type.
+   */
   template <class BaseT, class DerivedT, typename... Args>
   struct RegistrationRos {
     explicit RegistrationRos(const std::string& type) {
@@ -1272,7 +1518,17 @@ class Factory {
     }
   };
 
-  // Creation.
+  /**
+   * @brief Query the factory to create a dervied type.
+   *
+   * @tparam BaseT Type of the base class to query for.
+   * @tparam Args Other constructor arguments. Notice that each unique set of
+   * constructor arguments will result in a different base-entry in the factory.
+   * @param type String identifier of the derived type to create.
+   * @param args Other constructor arguments.
+   * @return std::unique_ptr<BaseT> Unique pointer of type base that contains
+   * the derived object.
+   */
   template <class BaseT, typename... Args>
   static std::unique_ptr<BaseT> create(const std::string& type, Args... args) {
     ModuleMap<BaseT, Args...>& module = ModuleMap<BaseT, Args...>::instance();
@@ -1398,7 +1654,14 @@ inline ParamMap getParamMapFromRos(const ros::NodeHandle& nh) {
 }
 }  // namespace internal
 
-// Tool to create configs from ROS.
+/**
+ * @brief Create a config from a given ROS nodehandle.
+ *
+ * @tparam ConfigT The config to create. ConfigT needs to inherit from
+ * config_utilities::Config<ConfigT>.
+ * @param nh Nodehandle to look up parameters from.
+ * @return ConfigT The created config.
+ */
 template <typename ConfigT>
 ConfigT getConfigFromRos(const ros::NodeHandle& nh) {
   ConfigT config;
@@ -1429,7 +1692,21 @@ ConfigT getConfigFromRos(const ros::NodeHandle& nh) {
 
 class FactoryRos : protected Factory {
  public:
-  // Creation.
+  /**
+   * @brief Query the ROS-factory to create a dervied type with its config from
+   * a ROS nodehandle.
+   *
+   * @tparam BaseT Type of the base class to query for.
+   * @tparam Args Other constructor arguments. The first constructor argument
+   * for all derived classes is required to be a <typename DerivedT::Config> and
+   * not listed in the arguments. Notice that each unique set of
+   * constructor arguments will result in a different base-entry in the factory.
+   * @param nh Nodehandle to create the config from. The string identifier of
+   * the derived class to create is taken from ROS-parameter named 'type'.
+   * @param args Other constructor arguments.
+   * @return std::unique_ptr<BaseT> Unique pointer of type base that contains
+   * the derived object.
+   */
   template <class BaseT, typename... Args>
   static std::unique_ptr<BaseT> create(const ros::NodeHandle& nh,
                                        Args... args) {
