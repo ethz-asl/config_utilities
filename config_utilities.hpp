@@ -873,7 +873,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
  private:
   friend std::unordered_map<std::string, std::string> getValues(
       const ConfigInternal& config);
-  friend std::string toString(const ConfigInternal& config);
 
   std::unordered_map<std::string, std::string> getValues() const {
     // This is only used within printing, so meta data exists.
@@ -1504,7 +1503,7 @@ class Factory {
    * @tparam Args Other constructor arguments. Notice that each unique set of
    * constructor arguments will result in a different base-entry in the factory.
    * @param type String identifier to look up and to create this derived type.
-   * /
+   */
   template <class BaseT, class DerivedT, typename... Args>
   struct Registration {
     explicit Registration(const std::string& type) {

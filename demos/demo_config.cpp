@@ -22,8 +22,6 @@ class MyClass {
     // General fields can be set in the constructor if required.
     Config() {
       setConfigName("MyClass-Config");
-      setPrintWidth(50);
-      setPrintIndent(15);
     }
 
    protected:
@@ -80,8 +78,11 @@ int main(int argc, char** argv) {
 
   // Create a valid (default) config.
   MyClass::Config valid_config;
-
   MyClass my_class(valid_config);
+
+  // General settings can be set dynamically in the global settings.
+  config_utilities::GlobalSettings().print_width = 50;
+  config_utilities::GlobalSettings().print_indent = 15;
 
   // This should print the config neatly.
   my_class.print();
