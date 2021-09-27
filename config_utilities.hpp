@@ -932,7 +932,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     // The header is the field name.
     std::string header = std::string(meta_data_->indent, ' ') + name;
     if (GlobalSettings::instance().indicate_units && !unit.empty()) {
-      header += "[" + unit + "]: ";
+      header += " [" + unit + "]: ";
     } else {
       header += ": ";
     }
