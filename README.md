@@ -1,5 +1,5 @@
 # config_utilities
-Utility tools to make working with config structs for (ROS) C++ libraries more uniform, readable, and convenient.
+Utility tools to make working with config structs for ROS (and non-ROS) C++ libraries more uniform, readable, and convenient.
 
 * **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
