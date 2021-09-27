@@ -161,7 +161,7 @@ MyConfig::checkParams() const {
 ```
 ```c++
 // Printing.
-void printField<T>(const std::string& name, const T& field) const;
+void printField<T>(const std::string& name, const T& field, const std::string& unit="") const;
 void printText(const std::string& text) const;
 
 // Use these tools within printFields().
@@ -186,11 +186,11 @@ MyConfig::fromRosParam() {
 ```
 ```c++
 // Merged param and printing setup. Internally uses the same tools as printField() and rosParam() to avoid code duplication.
-void setupParam<T>(const std::string& name, T* param);
+void setupParam<T>(const std::string& name, T* param, const std::string& unit);
 
 // Use these tools within setupParamsAndPrinting().
 MyConfig::setupParamsAndPrinting() {
-  setupParam("x_max", &x_max);
+  setupParam("x_max", &x_max, "m");
   ...
 }
 ```
