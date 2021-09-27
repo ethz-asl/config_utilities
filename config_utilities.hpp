@@ -567,7 +567,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
    */
   bool isValid(bool print_warnings = false) const {
     meta_data_->checker = std::make_unique<ConfigChecker>(name_);
-    meta_data_->checker->setPrintWidth(meta_data_->print_width);
+    meta_data_->checker->setPrintWidth(GlobalSettings::instance().print_width);
     meta_data_->print_warnings = print_warnings;
     checkParams();
     bool result = meta_data_->checker->isValid(print_warnings);
@@ -581,10 +581,10 @@ struct ConfigInternal : public ConfigInternalVerificator {
    */
   std::string toString() const {
     std::string result =
-        internal::printCenter(name_, meta_data_->print_width, '=') + "\n" +
-        toStringInternal(meta_data_->indent, meta_data_->print_width,
-                         meta_data_->print_indent) +
-        "\n" + std::string(meta_data_->print_width, '=');
+        internal::printCenter(name_, GlobalSettings::instance().print_width,
+                              '=') +
+        "\n" + toStringInternal(meta_data_->indent) + "\n" +
+        std::string(GlobalSettings::instance().print_width, '=');
     meta_data_->messages.reset(nullptr);
     return result;
   };
@@ -607,7 +607,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
   /**
    * @brief This function is called when the config is printed to string.
    * Implement this function by adding all printField functions.
-   *
    */
   virtual void printFields() const {
     if (!meta_data_->merged_setup_already_used) {
@@ -621,7 +620,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
   /**
    * @brief This function is called when a config is created from ROS param or
    * similar. Implement this function by adding all rosParam functions.
-   *
    */
   virtual void fromRosParam() {
     if (!meta_data_->merged_setup_already_used) {
@@ -633,7 +631,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
   /**
    * @brief This function combines printFields and fromRosParma to avoid code
    * duplication. Implement this function by ading all setupParam functions.
-   *
    */
   virtual void setupParamsAndPrinting() {
     // If this is overwritten this won't be set and will precede fromRosParam
@@ -645,7 +642,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
   /**
    * @brief Set the name of the config to be displayed in checks and prints.
    * Default is the typeid-name of the object.
-   *    */
+   */
   void setConfigName(const std::string& name) { name_ = name; }
 
   // Checking Tools.
@@ -922,35 +919,39 @@ struct ConfigInternal : public ConfigInternalVerificator {
 
     // The header is the field name.
     std::string header = std::string(meta_data_->indent, ' ') + name + ": ";
-    while (header.length() > meta_data_->print_width) {
+    while (header.length() > GlobalSettings::instance().print_width) {
       // Linebreaks for too long lines.
       meta_data_->messages->emplace_back(
-          header.substr(0, meta_data_->print_width));
-      header = header.substr(meta_data_->print_width);
+          header.substr(0, GlobalSettings::instance().print_width));
+      header = header.substr(GlobalSettings::instance().print_width);
     }
-    if (header.length() < meta_data_->print_indent) {
-      header.append(
-          std::string(meta_data_->print_indent - header.length(), ' '));
-    } else if (meta_data_->print_width - header.length() < f.length()) {
+    if (header.length() < GlobalSettings::instance().print_indent) {
+      header.append(std::string(
+          GlobalSettings::instance().print_indent - header.length(), ' '));
+    } else if (GlobalSettings::instance().print_width - header.length() <
+               f.length()) {
       meta_data_->messages->emplace_back(header);
-      header = std::string(meta_data_->print_indent, ' ');
+      header = std::string(GlobalSettings::instance().print_indent, ' ');
     }
 
     // First line could be shorter.
-    int length = meta_data_->print_width - header.length();
+    int length = GlobalSettings::instance().print_width - header.length();
     if (f.length() > length) {
       meta_data_->messages->emplace_back(header + f.substr(0, length));
       f = f.substr(length);
 
       // Fill the rest.
-      length = meta_data_->print_width - meta_data_->print_indent;
+      length = GlobalSettings::instance().print_width -
+               GlobalSettings::instance().print_indent;
       while (f.length() > length) {
         meta_data_->messages->emplace_back(
-            std::string(meta_data_->print_indent, ' ') + f.substr(0, length));
+            std::string(GlobalSettings::instance().print_indent, ' ') +
+            f.substr(0, length));
         f = f.substr(length);
       }
       meta_data_->messages->emplace_back(
-          std::string(meta_data_->print_indent, ' ') + f.substr(0, length));
+          std::string(GlobalSettings::instance().print_indent, ' ') +
+          f.substr(0, length));
     } else {
       meta_data_->messages->emplace_back(header.append(f));
     }
@@ -961,17 +962,11 @@ struct ConfigInternal : public ConfigInternalVerificator {
     meta_data_->messages->emplace_back(std::string(meta_data_->indent, ' ') +
                                        name + ":");
     meta_data_->messages->emplace_back(field->toStringInternal(
-        meta_data_->indent + GlobalSettings::instance().subconfig_indent,
-        meta_data_->print_width, meta_data_->print_indent));
+        meta_data_->indent + GlobalSettings::instance().subconfig_indent));
   }
 
-  std::string toStringInternal(int indent, int print_width,
-                               int print_indent) const {
-    int print_width_prev = meta_data_->print_width;
-    int print_indent_prev = meta_data_->print_indent;
-    int indent_prev = meta_data_->indent;
-    meta_data_->print_width = print_width;
-    meta_data_->print_indent = print_indent;
+  std::string toStringInternal(int indent) const {
+    const int indent_prev = meta_data_->indent;
     meta_data_->indent = indent;
 
     meta_data_->messages = std::make_unique<std::vector<std::string>>();
@@ -1005,8 +1000,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
     }
     meta_data_->messages.reset(nullptr);
     meta_data_->default_values.reset(nullptr);
-    meta_data_->print_width = print_width_prev;
-    meta_data_->print_indent = print_indent_prev;
     meta_data_->indent = indent_prev;
     return result;
   };
@@ -1402,9 +1395,6 @@ struct ConfigInternal : public ConfigInternalVerificator {
     const internal::ParamMap* params = nullptr;
 
     // settings and variables
-    int print_width = GlobalSettings::instance().print_width;
-
-    int print_indent = GlobalSettings::instance().print_indent;
     int indent = 0;  // Only used for nested printing.
     bool print_warnings = false;
     bool merged_setup_already_used = false;
@@ -1413,11 +1403,7 @@ struct ConfigInternal : public ConfigInternalVerificator {
     bool use_printing_to_get_values = false;
 
     MetaData() = default;
-    MetaData(const MetaData& other) {
-      print_width = other.print_width;
-      print_indent = other.print_indent;
-      indent = other.indent;
-    }
+    MetaData(const MetaData& other) { indent = other.indent; }
   };
 
   std::string name_;
