@@ -3,7 +3,7 @@ Utility tools to make working with config structs for ROS (and non-ROS) C++ libr
 
 * **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
-* **Version:** 1.1.7
+* **Version:** 1.2.0
 * **License:** BSD-3-Clause.
 
 ### Table of contents
@@ -17,7 +17,8 @@ Utility tools to make working with config structs for ROS (and non-ROS) C++ libr
   * [inheritance](#Inheritance)
   * [factory](#factory)
   * [ros_factory](#ROS-Factory)
-
+  * [variable_config](#Variable-Config)
+  
   
 # Why config_utilities
 This library was developed to make working with config structs for object-oriented C++ libraries as simple as possible.
@@ -47,7 +48,7 @@ Using config_utilities-based configs has the following advantages:
   my_class_using_configs.h / my_class_using_configs.cpp {
     // Contains *all* variables, defaults, valid values, printing, ROS-creation, factory registration, ...
   }
-    ```
+  ```
 * Easy registration and factory creation for arbitrary classes with and without configs:
   ```c++
   static config_utilities::Factory::Registration<Base, Derived> registration("MyDerived");
@@ -209,8 +210,23 @@ std::unique_ptr<BaseT> config_utilities::Factory::create<BaseT>("IdentifierStrin
 std::unique_ptr<BaseT> config_utilities::FactoryRos::create<BaseT>(const ros::NodeHandle& nh, constructor_args);
 ```
 
- 
+
+
+### Variable Config
+
+Use these configs like regular sub-configs as a member of a config. These can hold varying configs to create components downstream. The contained objects need to be registered via the ROS factory. Variable configs can be filled in via the `getConfigFromRos()` function. Variable configs need to be templated on the base type they create. Additional functionalities include:
+
+```c++
+// Check whether the config is setup.
+bool isSetup() const;
+// Get the string identifier for the type to be created (ROS Factory).
+std::string getType() const;
+// Create the downstream object using this config. Args are additional constructor args.
+std::unique_ptr<BaseT> create(Args... args) const;
+```
+
 # Demos
+
 Verbose examples of the most important functionalities are given in the demos folder. They can easily be run after building the config_utilities ROS-package.
 
 ## Config Checker
@@ -224,7 +240,7 @@ Runs a validity check and prints all warnings to console:
 Warning: Param 'a' is expected >= '0' (is: '-1').
 Warning: Param 'c' is expected to be 'this is c' (is: 'test').
 ================================================================================
-``` 
+```
 
 ## Config
 This demo describes how to define custom classes that utilize a `Config` struct:
@@ -270,7 +286,7 @@ map:           {m1: 1, m2: 2}
 T:             t: [0, 0, 0] RPY°: [-0, 0, -0]
 namespace:     /demo_ros_param
 ============================================================
-``` 
+```
 
 ## Inheritance
 This demo describes how to use nested configs, which can be used to setup derived and base classes:
@@ -302,13 +318,13 @@ Warning: Member config 'OtherConfig' is not valid.
 ===================== MyDerivedConfig ======================
 Warning: Member config 'MyBase' is not valid.
 ============================================================
-``` 
+```
 ## Factory
 This demo describes how to use the `config_utilities::Factory::Registration()` and `config_utilities::Factory::create()` tools to instantiate various objects.
 ```sh
 rosrun config_utilities demo_factory
 ```
-Defines two derived classes and registers them statically to the factory.
+Defines two derived classes and registers them statically to the factory, which can then be created using a string identifier:
 ```
 This is a DerivedA with i=0, f=0.
 This is a DerivedB with i=1, f=2.
@@ -322,7 +338,7 @@ This demo describes how to use the `config_utilities::Factory::RegistrationRos()
 roscore & rosrun config_utilities demo_ros_factory
 ```
 
-Defines two derived classes that use different configs and creates them from Ros.
+Defines two derived classes that use different configs and creates them from a ROS nodehandle:
 
 ```
 This is a DerivedA with i=1, f=2.345, and info 'How to create a DerivedA'.
@@ -332,3 +348,31 @@ s:                            param text.
 f:                            2.345
 ================================================================================
 ```
+
+## Variable Config
+
+This demo describes how to use the `config_utilities::Factory::RegistrationRos()` and `config_utilities::VariableConfig` parameter struct to adaptively create downstream objects without direct access to a ROS nodehandle.
+
+```
+roscore & rosrun config_utilities demo_variable_config
+```
+
+Creates a component of the primary object downstream using a Variable Config:
+
+```
+================================ Object Config =================================
+i:                            5 (default)
+base_config:                  Uninitialized Variable Config.
+================================================================================
+Config is valid: false
+================================ Object Config =================================
+i:                            10
+base_config (Variable Config: DerivedB):
+   s:                         text for derived B.
+================================================================================
+Config is valid: true
+This is a DerivedB with s='text for derived B.' and base data='10'.
+```
+
+
+
