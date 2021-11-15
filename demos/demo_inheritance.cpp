@@ -88,7 +88,8 @@ class MyDerived : public MyBase {
       setupParam("other_config", &other_config);
 
       // Here we use a sub_namespace 'base' to create the base config from.
-      // Leading "/" can be used to specify a global namespace.
+      // Leading "/" can be used to specify a global namespace, ~ for a private
+      // namespace of the ROS node.
       setupParam("base_config", &base_config, "base");
     }
 

@@ -36,6 +36,10 @@ cs_add_executable(demo_ros_factory
         demos/demo_ros_factory.cpp
         )
 
+cs_add_executable(demo_variable_config
+        demos/demo_variable_config.cpp
+        )
+
 ##########
 # Export #
 ##########
