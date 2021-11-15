@@ -1,4 +1,6 @@
 # Changelog
+* **1.2.0** (Nov. 2021)
+  * Added variable configs.
 
 * **1.1.7** (Sept. 2021)
   * Can now optionally display units when printing configs.
