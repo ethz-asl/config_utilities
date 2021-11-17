@@ -3,7 +3,7 @@ Utility tools to make working with config structs for ROS (and non-ROS) C++ libr
 
 * **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
-* **Version:** 1.2.0
+* **Version:** 1.2.1
 * **License:** BSD-3-Clause.
 
 ### Table of contents

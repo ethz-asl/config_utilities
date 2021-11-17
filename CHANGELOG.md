@@ -1,14 +1,13 @@
 # Changelog
+* **1.2.1** (Nov. 2021)
+  * Variable configs are now by default optional (left un-initialized if the params are not set).
 * **1.2.0** (Nov. 2021)
   * Added variable configs.
-
 * **1.1.7** (Sept. 2021)
   * Can now optionally display units when printing configs.
-
 * **1.1.6** (Sept 2021)
   * Can now indicate which values are defaults, which ones are different.
   * Refactored Settings to be global (rather than for each config) and dynamic (can be changed during program execution and not only when creating configs).
-
 * **1.1.5** and below
   * Initial release.
   * Functionality for merged setup.
