@@ -6,7 +6,7 @@ find_package(catkin_simple REQUIRED)
 catkin_simple(ALL_DEPS_REQUIRED)
 catkin_package()
 
-include_directories(.)
+include_directories(code)
 
 ###############
 # Executables #
@@ -39,6 +39,10 @@ cs_add_executable(demo_ros_factory
 cs_add_executable(demo_variable_config
         demos/demo_variable_config.cpp
         )
+
+########
+# Test #
+########
 
 ##########
 # Export #

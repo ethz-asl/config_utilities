@@ -19,9 +19,9 @@ jobs:
     container: ${{ matrix.config.container }}
     steps:
     - uses: actions/checkout@v1
-#      with:
-#        token: ${{ secrets.ACCESS_TOKEN }}
-#        github-token: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        token: ${{ secrets.ACCESS_TOKEN }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Install catkin-tools on melodic
       if: ${{ matrix.config.container == 'ros:melodic-ros-base-bionic' }}
       run: |
@@ -46,13 +46,11 @@ jobs:
         catkin init
         catkin config --extend "/opt/ros/${{matrix.config.rosdistro}}"
         catkin config --merge-devel
+        catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
         cd $HOME/catkin_ws/src
         ln -s $GITHUB_WORKSPACE
-        git clone git@github.com:ethz-asl/glog_catkin.git
-        git clone git@github.com:ethz-asl/gflags_catkin.git
-        git clone git@github.com:ethz-asl/minkindr.git
-        git clone git@github.com:ethz-asl/eigen_catkin.git
-        catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        wstool init . ./config_utilities/config_utilities.rosinstall
+        wstool update
         catkin build -j$(nproc) -l$(nproc) config_utilities
       shell: bash
 #    - name: unit_tests
