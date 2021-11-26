@@ -15,7 +15,7 @@ jobs:
       matrix:
         config:
           - {name: 'Ubuntu 18 + ROS Melodic', rosdistro: 'melodic', container: 'ros:melodic-ros-base-bionic'}
-          - {name: ''Ubuntu 20 + ROS Noetic', rosdistro: 'noetic', container: 'ros:noetic-ros-base-focal'}
+          - {name: 'Ubuntu 20 + ROS Noetic', rosdistro: 'noetic', container: 'ros:noetic-ros-base-focal'}
     container: ${{ matrix.config.container }}
     steps:
     - uses: actions/checkout@v1
