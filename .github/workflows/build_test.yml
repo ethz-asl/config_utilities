@@ -57,9 +57,9 @@ jobs:
         path: .ccache
         key: ${ { matrix.config.name } }-ccache-${ { steps.ccache_cache_timestamp.outputs.timestamp } }
         restore-keys: |
-        ${ { matrix.config.name } }-ccache-
+          ${ { matrix.config.name } }-ccache-
         
-    - name: release_build_test
+    - name: Release Build Test
       working-directory: 
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -78,7 +78,7 @@ jobs:
         wstool update
         catkin build -j$(nproc) -l$(nproc) config_utilities
       shell: bash
-#    - name: unit_tests
+#    - name: Run Unit Tests
 #      working-directory:
 #      run: |
 #        cd $HOME/catkin_ws/src
