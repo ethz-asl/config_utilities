@@ -24,13 +24,13 @@ jobs:
       with:
         token: ${{ secrets.ACCESS_TOKEN }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
-    - name: Install catkin-tools on melodic
+    - name: Install System Deps on Melodic
       if: ${{ matrix.config.container == 'ros:melodic-ros-base-bionic' }}
       run: |
         apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
         apt update && apt install -y python-wstool python-catkin-tools 
         
-    - name: Install catkin-tools on Noetic
+    - name: Install System Deps on Noetic
       if: ${{ matrix.config.container == 'ros:noetic-ros-base-focal' }}
       run: |
         apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
@@ -73,7 +73,7 @@ jobs:
         catkin init
         catkin config --extend "/opt/ros/${{matrix.config.rosdistro}}"
         catkin config --merge-devel
-        catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
+        catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         cd $HOME/catkin_ws/src
         ln -s $GITHUB_WORKSPACE
         wstool init . ./config_utilities/config_utilities.rosinstall
