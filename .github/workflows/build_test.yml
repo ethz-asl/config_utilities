@@ -14,8 +14,8 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {rosdistro: 'melodic', container: 'ros:melodic-ros-base-bionic'}
-          - {rosdistro: 'noetic', container: 'ros:noetic-ros-base-focal'}
+          - {name: 'Ubuntu 18 + ROS Melodic', rosdistro: 'melodic', container: 'ros:melodic-ros-base-bionic'}
+          - {name: ''Ubuntu 20 + ROS Noetic', rosdistro: 'noetic', container: 'ros:noetic-ros-base-focal'}
     container: ${{ matrix.config.container }}
     steps:
     - uses: actions/checkout@v1
@@ -27,6 +27,7 @@ jobs:
       run: |
         apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
         apt update && apt install -y python-wstool python-catkin-tools 
+        
     - name: Install catkin-tools on Noetic
       if: ${{ matrix.config.container == 'ros:noetic-ros-base-focal' }}
       run: |
@@ -34,7 +35,31 @@ jobs:
         apt update && apt install -y python3-pip
         pip3 install osrf-pycommon
         apt update && apt install -y python3-wstool python3-catkin-tools
-    - name: release_build_test
+    
+    - name: Download ccache
+      id: ccache
+      shell: cmake -P {0}
+      run: |
+        set(ccache_url "https://github.com/cristianadam/ccache/releases/download/v$ENV{CCACHE_VERSION}/${{ runner.os }}.tar.xz")
+        file(DOWNLOAD "${ccache_url}" ./ccache.tar.xz SHOW_PROGRESS)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ccache.tar.xz)
+        
+    - name: Prepare ccache timestamp
+      id: ccache_cache_timestamp
+      shell: cmake -P {0}
+      run: |
+        string(TIMESTAMP current_date "%Y-%m-%d-%H;%M;%S" UTC)
+        message("::set-output name=timestamp::${current_date}"
+        
+    - name: ccache cache files
+      uses: actions/cache@v1.1.0
+      with:
+      path: .ccache
+      key: ${ { matrix.config.name } }-ccache-${ { steps.ccache_cache_timestamp.outputs.timestamp } }
+      restore-keys: |
+        ${ { matrix.config.name } }-ccache-
+        
+    - name: Release Build Test
       working-directory: 
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -46,14 +71,14 @@ jobs:
         catkin init
         catkin config --extend "/opt/ros/${{matrix.config.rosdistro}}"
         catkin config --merge-devel
-        catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo
+        catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_CXX_COMPILER_LAUNCHER=ccache
         cd $HOME/catkin_ws/src
         ln -s $GITHUB_WORKSPACE
         wstool init . ./config_utilities/config_utilities.rosinstall
         wstool update
         catkin build -j$(nproc) -l$(nproc) config_utilities
       shell: bash
-#    - name: unit_tests
+#    - name: Run Unit Tests
 #      working-directory:
 #      run: |
 #        cd $HOME/catkin_ws/src
@@ -62,5 +87,6 @@ jobs:
 #        source $HOME/catkin_ws/devel/setup.bash
 #        status=0 && for f in $HOME/catkin_ws/devel/lib/*/*-test; do $f || exit 1; done
 #      shell: bash
+
       
 
