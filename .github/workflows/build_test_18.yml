@@ -22,6 +22,12 @@ jobs:
         token: ${{ secrets.ACCESS_TOKEN }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
         
+    - name: Install System Deps on Melodic
+      if: ${{ matrix.config.container == 'ros:melodic-ros-base-bionic' }}
+      run: |
+        apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+        apt update && apt install -y python-wstool python-catkin-tools  
+        
     - name: Setup ccache
       uses: hendrikmuhs/ccache-action@v1
       
@@ -30,20 +36,6 @@ jobs:
       run: |
         export PATH="/usr/lib/ccache:$PATH"
         ccache --max-size=1G
-      
-    - name: Install System Deps on Melodic
-      if: ${{ matrix.config.container == 'ros:melodic-ros-base-bionic' }}
-      run: |
-        apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-        apt update && apt install -y python-wstool python-catkin-tools 
-        
-    - name: Install System Deps on Noetic
-      if: ${{ matrix.config.container == 'ros:noetic-ros-base-focal' }}
-      run: |
-        apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-        apt update && apt install -y python3-pip
-        pip3 install osrf-pycommon
-        apt update && apt install -y python3-wstool python3-catkin-tools
         
     - name: Release Build Test
       working-directory: 
