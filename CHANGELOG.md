@@ -1,6 +1,7 @@
 # Changelog
 * **1.2.1** (Nov. 2021)
   * Variable configs are now by default optional (left un-initialized if the params are not set).
+  * Added CI for build tests on Ubuntu 18 and 20.
 * **1.2.0** (Nov. 2021)
   * Added variable configs.
 * **1.1.7** (Sept. 2021)
