@@ -1,6 +1,4 @@
-```
-[![Build Test](https://github.com/ethz-asl/config_utilities/actions/workflows/build_test.yml/badge.svg](https://github.com/ethz-asl/config_utilities/actions/workflows/build_test.yml/badge.svg)
-```
+![Ubuntu 18 + ROS Melodic](https://github.com/ethz-asl/config_utilities/actions/workflows/build_test_18.yml/badge.svg)
 
 # config_utilities
 
