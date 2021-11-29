@@ -21,6 +21,16 @@ jobs:
       with:
         token: ${{ secrets.ACCESS_TOKEN }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1
+      
+    - name: Configure ccache
+      shell: bash
+      run: |
+        export PATH="/usr/lib/ccache:$PATH"
+        ccache --max-size=1G
+      
     - name: Install System Deps on Melodic
       if: ${{ matrix.config.container == 'ros:melodic-ros-base-bionic' }}
       run: |
@@ -34,23 +44,6 @@ jobs:
         apt update && apt install -y python3-pip
         pip3 install osrf-pycommon
         apt update && apt install -y python3-wstool python3-catkin-tools
-        
-    - name: Setup ccache
-      id: ccache_setup
-      shell: bash
-      run: |
-        export CCACHE_STAMP=$(date +"%Y-%m-%d-%H-%M-%S")
-        apt install -y ccache
-        export PATH="/usr/lib/ccache:$PATH"
-        ccache --max-size=1G
-        
-    - name: Cache ccache files
-      uses: actions/cache@v1.1.0
-      with:
-        path: .ccache
-        key: ${ { matrix.config.name } }-ccache-$ENV{CCACHE_STAMP}
-        restore-keys: |
-          ${ { matrix.config.name } }-ccache-
         
     - name: Release Build Test
       working-directory: 
