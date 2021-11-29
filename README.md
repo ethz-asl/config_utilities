@@ -1,3 +1,5 @@
+![Ubuntu 18 + ROS Melodic](https://github.com/ethz-asl/config_utilities/actions/workflows/build_test_18.yml/badge.svg) ![Ubuntu 20 + ROS Noetic](https://github.com/ethz-asl/config_utilities/actions/workflows/build_test_20.yml/badge.svg)
+
 # config_utilities
 Utility tools to make working with config structs for ROS (and non-ROS) C++ libraries more uniform, readable, and convenient.
 
@@ -79,13 +81,12 @@ Using config_utilities-based configs has the following advantages:
   To run the demos, the ROS package can be conveniently installed via catkin: 
   ```sh
   cd ~/catkin_ws/src
-  git clone https://github.com/Schmluk/config_utilities.git
+  git clone https://github.com/ethz-asl/config_utilities.git
   
-  # If not already done so, install dependencies:
-  git clone git@github.com:ethz-asl/glog_catkin.git
-  git clone git@github.com:ethz-asl/gflags_catkin.git
-  git clone git@github.com:ethz-asl/minkindr.git
-  git clone git@github.com:ethz-asl/eigen_catkin.git
+  # Install all dependencies via rosinstall
+  wstool init . ./config_utilities/config_utilities.rosinstall  # new workspace
+  wstool merge -t . ./config_utilities/config_utilities.rosinstall # existing workspace
+  wstool update
   
   cd config_utilities
   catkin build --this
