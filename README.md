@@ -1,5 +1,5 @@
-```markdown
-![Build Test](https://github.com/ethz-asl/config_utilities/actions/workflows/build_test.yml/badge.svg)
+```
+[![Build Test](https://github.com/ethz-asl/config_utilities/actions/workflows/build_test.yml/badge.svg](https://github.com/ethz-asl/config_utilities/actions/workflows/build_test.yml/badge.svg)
 ```
 
 # config_utilities
