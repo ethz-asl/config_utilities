@@ -63,7 +63,11 @@ jobs:
         DEBIAN_FRONTEND: noninteractiv
       shell: bash
       run: |
+        echo $PATH
         which g++ gcc
+        export PATH="/usr/lib/ccache:$PATH
+        which g++ gcc
+
         apt update
         apt install -y autoconf libtool git
         mkdir -p $HOME/catkin_ws/src;
