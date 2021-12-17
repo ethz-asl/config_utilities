@@ -44,8 +44,8 @@ jobs:
     - name: Cache ccache files
       uses: actions/cache@v1.1.0
       with:
-        path: ${{ CCACHE_DIR }}
-        key: ${{ matrix.config.name }}-ccache-${{ CCACHE_STAMP }}
+        path: ${{ env.CCACHE_DIR }}
+        key: ${{ matrix.config.name }}-ccache-${{ env.CCACHE_STAMP }}
         restore-keys: |
           ${{ matrix.config.name }}-ccache-
         
