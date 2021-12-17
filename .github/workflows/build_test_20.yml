@@ -65,7 +65,7 @@ jobs:
       run: |
         echo $PATH
         which g++ gcc
-        export PATH="/usr/lib/ccache:$PATH
+        export PATH="/usr/lib/ccache:$PATH"
         which g++ gcc
 
         apt update
