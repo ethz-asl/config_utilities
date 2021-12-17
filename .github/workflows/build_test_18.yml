@@ -26,20 +26,26 @@ jobs:
       shell: bash
       run: |
         apt update && apt install -y ccache
+
         export PATH="/usr/lib/ccache:$PATH"
-        echo "Updated PATH=$PATH"
         export CCACHE_DIR=$HOME/catkin_ws/ccache
-        echo "Set CCACHE_DIR=$CCACHE_DIR"
         export CCACHE_STAMP=$(date +%Y-%m-%d_%H-%M-%S)
+
+        echo "Updated PATH=$PATH"
+        echo "Set CCACHE_DIR=$CCACHE_DIR"
         echo "Set CCACHE_STAMP=$CCACHE_STAMP"
+
+        echo "CCACHE_DIR=$CCACHE_DIR" >> $GITHUB_ENV
+        echo "CCACHE_STAMP=$CCACHE_STAMP" >> $GITHUB_ENV
+
         mkdir -p $CCACHE_DIR
         ccache --max-size=1G
 
     - name: Cache ccache files
       uses: actions/cache@v1.1.0
       with:
-        path: $CCACHE_DIR 
-        key: ${{ matrix.config.name }}-ccache-$CCACHE_STAMP
+        path: env.CCACHE_DIR 
+        key: ${{ matrix.config.name }}-ccache-${{ env.CCACHE_STAMP }}
         restore-keys: |
           ${{ matrix.config.name }}-ccache-
 
@@ -55,6 +61,7 @@ jobs:
         DEBIAN_FRONTEND: noninteractiv
       shell: bash
       run: |
+        echo "Test CCACHE_DIR: $CCACHE_DIR"
         apt update
         apt install -y autoconf libtool git
         mkdir -p $HOME/catkin_ws/src;
