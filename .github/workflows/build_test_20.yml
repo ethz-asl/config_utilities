@@ -31,13 +31,22 @@ jobs:
         apt update && apt install -y python3-wstool python3-catkin-tools
       
     - name: Setup ccache
-      uses: hendrikmuhs/ccache-action@v1
-      
-    - name: Configure ccache
       shell: bash
       run: |
+        apt update && apt install -y ccache
         export PATH="/usr/lib/ccache:$PATH"
+        export CCACHE_DIR=$HOME/catkin_ws/ccache
+        export CCACHE_STAMP=$(date +%Y-%m-%d_%H-%M-%S)
+        mkdir -p $CCACHE_DIR
         ccache --max-size=1G
+
+    - name: Cache ccache files
+      uses: actions/cache@v1.1.0
+      with:
+        path: ${{env.CCACHE_DIR}}
+        key: ${{ matrix.config.name }}-ccache-${{env.CCACHE_STAMP}}
+        restore-keys: |
+          ${{ matrix.config.name }}-ccache-
         
     - name: Release Build Test
       working-directory: 
