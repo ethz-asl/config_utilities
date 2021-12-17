@@ -21,12 +21,6 @@ jobs:
       with:
         token: ${{ secrets.ACCESS_TOKEN }}
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Install System Deps on Melodic
-      if: ${{ matrix.config.container == 'ros:melodic-ros-base-bionic' }}
-      run: |
-        apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
-        apt update && apt install -y python-wstool python-catkin-tools  
       
     - name: Setup ccache
       shell: bash
@@ -44,10 +38,16 @@ jobs:
     - name: Cache ccache files
       uses: actions/cache@v1.1.0
       with:
-        path: env.CCACHE_DIR
-        key: ${{ matrix.config.name }}-ccache-${{ env.CCACHE_STAMP }}
+        path: $CCACHE_DIR 
+        key: ${{ matrix.config.name }}-ccache-$CCACHE_STAMP
         restore-keys: |
           ${{ matrix.config.name }}-ccache-
+
+    - name: Install System Deps on Melodic
+      if: ${{ matrix.config.container == 'ros:melodic-ros-base-bionic' }}
+      run: |
+        apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+        apt update && apt install -y python-wstool python-catkin-tools  
         
     - name: Release Build Test
       working-directory: 
