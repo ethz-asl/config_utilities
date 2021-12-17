@@ -21,6 +21,29 @@ jobs:
       with:
         token: ${{ secrets.ACCESS_TOKEN }}
         github-token: ${{ secrets.GITHUB_TOKEN }} 
+
+    - name: Setup ccache
+      shell: bash
+      run: |
+        apt update && apt install -y ccache
+        export PATH="/usr/lib/ccache:$PATH"
+        export CCACHE_DIR=$HOME/catkin_ws/ccache
+        export CCACHE_STAMP=$(date +%Y-%m-%d_%H-%M-%S)
+        echo "Updated PATH=$PATH"
+        echo "Set CCACHE_DIR=$CCACHE_DIR"
+        echo "Set CCACHE_STAMP=$CCACHE_STAMP"
+        echo "CCACHE_DIR=$CCACHE_DIR" >> $GITHUB_ENV
+        echo "CCACHE_STAMP=$CCACHE_STAMP" >> $GITHUB_ENV
+        mkdir -p $CCACHE_DIR
+        ccache --max-size=1G
+
+    - name: Cache ccache files
+      uses: actions/cache@v1.1.0
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: ${{ matrix.config.name }}-ccache-${{ env.CCACHE_STAMP }}
+        restore-keys: |
+          ${{ matrix.config.name }}-ccache-
         
     - name: Install System Deps on Noetic
       if: ${{ matrix.config.container == 'ros:noetic-ros-base-focal' }}
@@ -29,15 +52,6 @@ jobs:
         apt update && apt install -y python3-pip
         pip3 install osrf-pycommon
         apt update && apt install -y python3-wstool python3-catkin-tools
-      
-    - name: Setup ccache
-      uses: hendrikmuhs/ccache-action@v1
-      
-    - name: Configure ccache
-      shell: bash
-      run: |
-        export PATH="/usr/lib/ccache:$PATH"
-        ccache --max-size=1G
         
     - name: Release Build Test
       working-directory: 
@@ -45,6 +59,8 @@ jobs:
         DEBIAN_FRONTEND: noninteractiv
       shell: bash
       run: |
+        export PATH="/usr/lib/ccache:$PATH"
+        which g++ gcc
         apt update
         apt install -y autoconf libtool git
         mkdir -p $HOME/catkin_ws/src;
@@ -58,16 +74,4 @@ jobs:
         wstool init . ./config_utilities/config_utilities.rosinstall
         wstool update
         catkin build -j$(nproc) -l$(nproc) config_utilities
-
-#    - name: Run Unit Tests
-#      working-directory:
-#      run: |
-#        cd $HOME/catkin_ws/src
-#        catkin config --cmake-args -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCATKIN_ENABLE_TESTING=True
-#        catkin build terrain_planner --no-deps -i --catkin-make-args tests
-#        source $HOME/catkin_ws/devel/setup.bash
-#        status=0 && for f in $HOME/catkin_ws/devel/lib/*/*-test; do $f || exit 1; done
-#      shell: bash
-
-      
-
+        
