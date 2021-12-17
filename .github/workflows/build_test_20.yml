@@ -21,6 +21,33 @@ jobs:
       with:
         token: ${{ secrets.ACCESS_TOKEN }}
         github-token: ${{ secrets.GITHUB_TOKEN }} 
+
+    - name: Setup ccache
+      shell: bash
+      run: |
+        apt update && apt install -y ccache
+
+        export PATH="/usr/lib/ccache:$PATH"
+        export CCACHE_DIR=$HOME/catkin_ws/ccache
+        export CCACHE_STAMP=$(date +%Y-%m-%d_%H-%M-%S)
+
+        echo "Updated PATH=$PATH"
+        echo "Set CCACHE_DIR=$CCACHE_DIR"
+        echo "Set CCACHE_STAMP=$CCACHE_STAMP"
+
+        echo "CCACHE_DIR=$CCACHE_DIR" >> $GITHUB_ENV
+        echo "CCACHE_STAMP=$CCACHE_STAMP" >> $GITHUB_ENV
+
+        mkdir -p $CCACHE_DIR
+        ccache --max-size=1G
+
+    - name: Cache ccache files
+      uses: actions/cache@v1.1.0
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: ${{ matrix.config.name }}-ccache-${{ env.CCACHE_STAMP }}
+        restore-keys: |
+          ${{ matrix.config.name }}-ccache-
         
     - name: Install System Deps on Noetic
       if: ${{ matrix.config.container == 'ros:noetic-ros-base-focal' }}
@@ -29,24 +56,6 @@ jobs:
         apt update && apt install -y python3-pip
         pip3 install osrf-pycommon
         apt update && apt install -y python3-wstool python3-catkin-tools
-      
-    - name: Setup ccache
-      shell: bash
-      run: |
-        apt update && apt install -y ccache
-        export PATH="/usr/lib/ccache:$PATH"
-        export CCACHE_DIR=$HOME/catkin_ws/ccache
-        export CCACHE_STAMP=$(date +%Y-%m-%d_%H-%M-%S)
-        mkdir -p $CCACHE_DIR
-        ccache --max-size=1G
-
-    - name: Cache ccache files
-      uses: actions/cache@v1.1.0
-      with:
-        path: ${{env.CCACHE_DIR}}
-        key: ${{ matrix.config.name }}-ccache-${{env.CCACHE_STAMP}}
-        restore-keys: |
-          ${{ matrix.config.name }}-ccache-
         
     - name: Release Build Test
       working-directory: 
