@@ -44,7 +44,7 @@ jobs:
     - name: Cache ccache files
       uses: actions/cache@v1.1.0
       with:
-        path: env.CCACHE_DIR 
+        path: ${{ env.CCACHE_DIR }}
         key: ${{ matrix.config.name }}-ccache-${{ env.CCACHE_STAMP }}
         restore-keys: |
           ${{ matrix.config.name }}-ccache-
@@ -61,7 +61,6 @@ jobs:
         DEBIAN_FRONTEND: noninteractiv
       shell: bash
       run: |
-        echo "Test CCACHE_DIR: $CCACHE_DIR"
         apt update
         apt install -y autoconf libtool git
         mkdir -p $HOME/catkin_ws/src;
