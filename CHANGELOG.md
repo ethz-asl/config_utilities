@@ -1,4 +1,6 @@
 # Changelog
+* **1.2.2** (Jan. 2022)
+  * Fixed double printing of text if default detection is activated.
 * **1.2.1** (Nov. 2021)
   * Variable configs are now by default optional (left un-initialized if the params are not set).
   * Added CI for build tests on Ubuntu 18 and 20.
