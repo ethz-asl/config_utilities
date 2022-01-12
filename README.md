@@ -5,21 +5,30 @@ Utility tools to make working with config structs for ROS (and non-ROS) C++ libr
 
 * **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
-* **Version:** 1.2.1
+* **Version:** 1.2.2
 * **License:** BSD-3-Clause.
 
 ### Table of contents
-* [**Why config_utilities**](#Why-config_utilities)
-* [**Installation**](#Installation)
-* [**Interfaces and Tools** (The config_utilities How To...)](#Interfaces-and-Tools)
-* [**Demos**](#Demos)
-  * [config_checker](#Config-Checker)
-  * [config](#Config)
-  * [ros_param](#ROS-Param)
-  * [inheritance](#Inheritance)
-  * [factory](#factory)
-  * [ros_factory](#ROS-Factory)
-  * [variable_config](#Variable-Config)
+- [config_utilities](#config_utilities)
+    - [Table of contents](#table-of-contents)
+- [Why config_utilities](#why-config_utilities)
+- [Installation](#installation)
+- [Interfaces and Tools](#interfaces-and-tools)
+    - [Settings](#settings)
+    - [Configs](#configs)
+      - [Public Member Functions](#public-member-functions)
+      - [Virtual Member Functions](#virtual-member-functions)
+      - [Protected Member Functions](#protected-member-functions)
+    - [Factory](#factory)
+    - [Variable Config](#variable-config)
+- [Demos](#demos)
+  - [Config Checker](#config-checker)
+  - [Config](#config)
+  - [ROS Param](#ros-param)
+  - [Inheritance](#inheritance)
+  - [Factory](#factory-1)
+  - [ROS Factory](#ros-factory)
+  - [Variable Config](#variable-config-1)
   
   
 # Why config_utilities
