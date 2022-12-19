@@ -1,4 +1,6 @@
 # Changelog
+* **1.2.3** (Dec. 2022)
+  * Cleaned up -WAll compiler warnings.
 * **1.2.2** (Jan. 2022)
   * Fixed double printing of text if default detection is activated.
 * **1.2.1** (Nov. 2021)

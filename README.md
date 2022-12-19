@@ -3,9 +3,9 @@
 # config_utilities
 Utility tools to make working with config structs for ROS (and non-ROS) C++ libraries more uniform, readable, and convenient.
 
-* **Author:** Lukas Schmid <schmluk@mavt.ethz.ch>.
+* **Author:** Lukas Schmid <schmluk@ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
-* **Version:** 1.2.2
+* **Version:** 1.2.3
 * **License:** BSD-3-Clause.
 
 ### Table of contents
