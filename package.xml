@@ -23,6 +23,9 @@
     <!-- ROS demos. -->
     <depend>roscpp</depend>
 
+    <!-- Unit tests. -->
+    <!-- <depend>gtest_catkin</depend> -->
+
     <export>
     </export>
 </package>

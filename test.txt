@@ -1,0 +1,12 @@
+================================ Object Config =================================
+i:                            5 (default)
+base_config:                  Uninitialized Variable Config.
+================================================================================
+Config is valid: false
+================================ Object Config =================================
+i:                            10
+base_config (Variable Config: DerivedB):
+   s:                         text for derived B.
+================================================================================
+Config is valid: true
+This is a DerivedB with s='text for derived B.' and base data='10'.

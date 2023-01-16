@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.0)
 project(config_utilities)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -43,6 +43,18 @@ cs_add_executable(demo_variable_config
 ########
 # Test #
 ########
+
+# if (CATKIN_ENABLE_TESTING)
+#     catkin_add_gtest(demos-test test/demos.cpp)
+#     target_link_libraries(demos-test ${catkin_LIBRARIES} ${PROJECT_NAME})
+# endif()
+
+find_package(gtest)
+cs_add_executable(test_tmp
+        test/demos.cpp
+        )
+target_link_libraries(test_tmp gtest ${catkin_LIBRARIES})
+
 
 ##########
 # Export #
