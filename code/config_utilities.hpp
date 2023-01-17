@@ -2,7 +2,7 @@
 AUTHOR:       Lukas Schmid <schmluk@ethz.ch>
 AFFILIATION:  Autonomous Systems Lab (ASL), ETH Zürich
 SOURCE:       https://github.com/ethz-asl/config_utilities
-VERSION:      1.3.0
+VERSION:      1.3.1
 LICENSE:      BSD-3-Clause
 
 Copyright 2020 Autonomous Systems Lab (ASL), ETH Zürich.
@@ -34,7 +34,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 // Raises a redefined warning if different versions are used. v=MMmmPP.
-#define CONFIG_UTILITIES_VERSION 010300
+#define CONFIG_UTILITIES_VERSION 010301
 
 /**
  * Depending on which headers are available, ROS dependencies are included in

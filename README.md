@@ -1,11 +1,11 @@
-![Ubuntu 18 + ROS Melodic](https://github.com/ethz-asl/config_utilities/actions/workflows/build_test_18.yml/badge.svg) ![Ubuntu 20 + ROS Noetic](https://github.com/ethz-asl/config_utilities/actions/workflows/build_test_20.yml/badge.svg)
+![Ubuntu 18 + ROS Melodic: Build + Tests](https://github.com/ethz-asl/config_utilities/actions/workflows/build_test_18.yml/badge.svg) ![Ubuntu 20 + ROS Noetic: Build + Tests](https://github.com/ethz-asl/config_utilities/actions/workflows/build_test_20.yml/badge.svg)
 
 # config_utilities
 Utility tools to make working with config structs for ROS (and non-ROS) C++ libraries more uniform, readable, and convenient.
 
 * **Author:** Lukas Schmid <schmluk@ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
-* **Version:** 1.3.0
+* **Version:** 1.3.1
 * **License:** BSD-3-Clause.
 
 ### Table of contents

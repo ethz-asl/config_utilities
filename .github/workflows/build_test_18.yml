@@ -1,4 +1,4 @@
-name: Ubuntu 18 + ROS Melodic
+name: "Ubuntu 18 + ROS Melodic: Build + Tests"
 on:
   push:
     branches:
@@ -72,7 +72,7 @@ jobs:
         wstool init . ./config_utilities/config_utilities.rosinstall
         wstool update
         catkin build -j$(nproc) -l$(nproc) config_utilities
-        
+
     - name: Run Unit Tests
       working-directory:
       shell: bash
