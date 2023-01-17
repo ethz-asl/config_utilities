@@ -48,17 +48,11 @@ demos/demo_global_settings.cpp
 # Test #
 ########
 
-# if (CATKIN_ENABLE_TESTING)
-#     catkin_add_gtest(demos-test test/demos.cpp)
-#     target_link_libraries(demos-test ${catkin_LIBRARIES} ${PROJECT_NAME})
-# endif()
-
-find_package(gtest)
-cs_add_executable(test_tmp
-        test/demos.cpp
-        )
-target_link_libraries(test_tmp gtest ${catkin_LIBRARIES})
-
+if (CATKIN_ENABLE_TESTING)
+    find_package(gtest)
+    catkin_add_gtest(demos-test test/demos.cpp)
+    target_link_libraries(demos-test gtest ${catkin_LIBRARIES})
+endif()
 
 ##########
 # Export #
