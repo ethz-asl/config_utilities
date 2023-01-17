@@ -80,11 +80,6 @@ int main(int argc, char** argv) {
   MyClass::Config valid_config;
   MyClass my_class(valid_config);
 
-  // General settings can be set dynamically in the global settings.
-  config_utilities::GlobalSettings().print_width = 50;
-  config_utilities::GlobalSettings().print_indent = 15;
-  config_utilities::GlobalSettings().indicate_default_values = false;
-
   // This should print the config neatly.
   my_class.print();
 
