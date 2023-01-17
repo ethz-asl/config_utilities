@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.0)
 project(config_utilities)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -47,6 +47,12 @@ demos/demo_global_settings.cpp
 ########
 # Test #
 ########
+
+if (CATKIN_ENABLE_TESTING)
+    find_package(gtest)
+    catkin_add_gtest(demos-test test/demos.cpp)
+    target_link_libraries(demos-test gtest ${catkin_LIBRARIES})
+endif()
 
 ##########
 # Export #

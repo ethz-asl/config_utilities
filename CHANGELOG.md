@@ -1,4 +1,6 @@
 # Changelog
+* **1.3.1** (Jan. 2023)
+  * Added unit tests on all demos to ensure continued compatibility with all functionalities.
 * **1.3.0** (Jan. 2023)
   * Added global printing and tracking tools.
   * [Breaking Compatibility] Refactored access to global settings.

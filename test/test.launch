@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="name" default="" />
+  <node name="test" pkg="config_utilities" type="$(arg name)" output="screen" required="true"/>
+</launch>
