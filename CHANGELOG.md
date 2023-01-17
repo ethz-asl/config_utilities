@@ -1,4 +1,7 @@
 # Changelog
+* **1.3.0** (Jan. 2023)
+  * Added global printing and tracking tools.
+  * [Breaking Compatibility] Refactored access to global settings.
 * **1.2.3** (Dec. 2022)
   * Cleaned up -WAll compiler warnings.
 * **1.2.2** (Jan. 2022)

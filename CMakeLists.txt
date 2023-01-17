@@ -40,6 +40,10 @@ cs_add_executable(demo_variable_config
         demos/demo_variable_config.cpp
         )
 
+cs_add_executable(demo_global_settings
+demos/demo_global_settings.cpp
+)
+
 ########
 # Test #
 ########
