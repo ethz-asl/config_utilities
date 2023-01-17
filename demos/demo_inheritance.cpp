@@ -117,8 +117,8 @@ int main(int argc, char** argv) {
   google::ParseCommandLineFlags(&argc, &argv, false);
 
   // General settings for all configs that are created after this statement.
-  config_utilities::GlobalSettings().print_width = 60;
-  config_utilities::GlobalSettings().print_indent = 20;
+  config_utilities::Global::Settings().print_width = 60;
+  config_utilities::Global::Settings().print_indent = 20;
 
   // Setup ros and add some params to the parameter server
   ros::init(argc, argv, "demo_inheritance");

@@ -5,7 +5,7 @@ Utility tools to make working with config structs for ROS (and non-ROS) C++ libr
 
 * **Author:** Lukas Schmid <schmluk@ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
-* **Version:** 1.2.3
+* **Version:** 1.3.0
 * **License:** BSD-3-Clause.
 
 ### Table of contents
@@ -29,6 +29,7 @@ Utility tools to make working with config structs for ROS (and non-ROS) C++ libr
   - [Factory](#factory-1)
   - [ROS Factory](#ros-factory)
   - [Variable Config](#variable-config-1)
+  - [Global Settings](#global-settings)
   
   
 # Why config_utilities
@@ -50,8 +51,9 @@ Using config_utilities-based configs has the following advantages:
   ```
 * Verbose and clear printing for debugging or verification can be setup for the entire project:
   ```c++
-  config_utilities::GlobalSettings().default_print_width = 80;
+  config_utilities::Global::Settings().default_print_width = 80;
   std::cout << config.toString() << std::endl;
+  std::ofstream(log_file) << config_utilities::Global::printAllConfigs();
   ```
 * Everything related to a config is located at its definition/implementation, making all its properties clear and easy to change.
   No need for additional code in other files where changes could be overlooked.
@@ -62,8 +64,8 @@ Using config_utilities-based configs has the following advantages:
   ```
 * Easy registration and factory creation for arbitrary classes with and without configs:
   ```c++
-  static config_utilities::Factory::Registration<Base, Derived> registration("MyDerived");
-  std::shared_ptr<Base> object = config_utilities::Factory::create<Base>("MyDerived");
+  static config_utilities::Factory::Registration<Base, Derived> registration("MyDerivedKey");
+  std::shared_ptr<Base> object = config_utilities::Factory::create<Base>("MyDerivedKey");
   ```
 
 # Installation
@@ -259,25 +261,22 @@ rosrun config_utilities demo_config
 ```
 This will setup a class using a valid config and print it to console, as well as a creation attempt with an invalid config:
 ```
-============ MyClass-Config ============
-a:             1
-b:             2.34
-b_half:        1.17
-c:             this is c
-An_extremely_unecessarily_and_unreasonab
-ly_long_param_name: 
-               A_similarly_unreasonably_
-               long_param_value.
+================================ MyClass-Config ================================
+a:                            1 (default)
+b:                            2.34 (default)
+b_half:                       1.17 (default)
+c:                            this is c (default)
+An_extremely_unecessarily_and_unreasonably_long_param_name: 
+                              A_similarly_unreasonably_long_param_value. (defaul
+                              t)
 And a custom message.
-========================================
+================================================================================
 
-============ MyClass-Config ============
-Warning: Param 'a' is expected >= '0' (i
-         s: '-1').
-Warning: Param 'c' is expected to be 'th
-         is is c' (is: 'test').
+================================ MyClass-Config ================================
+Warning: Param 'a' is expected >= '0' (is: '-1').
+Warning: Param 'c' is expected to be 'this is c' (is: 'test').
 Warning: b is expected > a.
-========================================
+================================================================================
 ```
 
 ## ROS Param
@@ -382,6 +381,51 @@ base_config (Variable Config: DerivedB):
 ================================================================================
 Config is valid: true
 This is a DerivedB with s='text for derived B.' and base data='10'.
+```
+
+
+## Global Settings
+This demo describes how to use the `config_utilities::Global` tools to dynamically change settings and get information on all configs.
+
+```
+rosrun config_utilities demo_global_settings
+```
+
+Creates three confings A,B, and C, prints C with two different printing layouts defined by global settings, and then summarizes all existing configs.
+
+```
+=================================== ConfigC ====================================
+config_a:
+   a [m]:                     123 (default)
+   aa:                        config a text (default)
+config_b:
+   b [Hz]:                    45
+   bb:                        varied config b text
+================================================================================
+=============== ConfigC ================
+config_a:
+          a:   123
+          aa:  config a text
+config_b:
+          b:   45
+          bb:  varied config b text
+========================================
+
+Value of all existing params: 
+=============== ConfigA ================
+a:             123
+aa:            config a text
+=============== ConfigB ================
+b:             30
+bb:            config b text
+=============== ConfigC ================
+config_a:
+          a:   123
+          aa:  config a text
+config_b:
+          b:   45
+          bb:  varied config b text
+========================================
 ```
 
 
