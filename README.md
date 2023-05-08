@@ -109,8 +109,8 @@ Briefly describes the interfaces available and how to use them.
 ### Settings
 Set default settings for the entire project. Set these before instantiating a config.
 ```c++
-config_utilities::GlobalSettings().default_print_width = 80;
-config_utilities::GlobalSettings().default_print_indent = 30;
+config_utilities::Global::Settings().default_print_width = 80;
+config_utilities::Global::Settings().default_print_indent = 30;
 ```
 ### Configs
 Define configs by inheriting from the provided `config_utilities::Config` and templating itself. 
