@@ -3,6 +3,12 @@
 # config_utilities
 Utility tools to make working with config structs for ROS (and non-ROS) C++ libraries more uniform, readable, and convenient.
 
+> **Important Note (Nov 2023):**
+> 
+> A newer version of config_utilities has been released, that supports everything config_utilities can do and more with cleaner interfaces and tools!
+> You can find the new release at [https://github.com/MIT-SPARK/config_utilities](https://github.com/MIT-SPARK/config_utilities).
+> This version of config_utilities will no longer be actively maintained.
+
 * **Author:** Lukas Schmid <schmluk@ethz.ch>.
 * **Affiliation:** Autonomous Systems Lab (ASL), ETH Zürich.
 * **Version:** 1.3.1
